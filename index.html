@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glandular Glitch - Hobby Tracker</title>
+    <style>
+        :root { --bg-color: #121212; --panel-bg: #1e1e1e; --accent: #b03030; --text-main: #e0e0e0; --text-muted: #888888; --border: #333333; --success: #3a7d44; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; height: 100vh; }
+        
+        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-color); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .login-box { background-color: var(--panel-bg); padding: 40px; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.5); width: 300px; text-align: center; }
+        .login-box h2 { border-bottom: none; color: var(--accent); margin-top: 0; text-transform: uppercase; letter-spacing: 2px; }
+        
+        #app-container { display: none; width: 100%; height: 100%; }
+        nav { width: 250px; background-color: var(--panel-bg); border-right: 1px solid var(--border); padding: 20px 0; display: flex; flex-direction: column; }
+        nav h1 { text-align: center; font-size: 1.2rem; color: var(--accent); margin-bottom: 30px; text-transform: uppercase; letter-spacing: 2px; }
+        nav button { background: none; border: none; color: var(--text-main); padding: 15px 20px; text-align: left; font-size: 1rem; cursor: pointer; border-left: 3px solid transparent; transition: all 0.2s; }
+        nav button:hover, nav button.active { background-color: #2a2a2a; border-left: 3px solid var(--accent); color: #fff; }
+        
+        main { flex-grow: 1; padding: 30px; overflow-y: auto; }
+        .tab-content { display: none; background-color: var(--panel-bg); padding: 25px; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .tab-content.active { display: block; }
+        h2 { border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-top: 0; }
+        h3 { color: var(--accent); font-size: 1.1rem; }
+        
+        .form-row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+        .form-group { flex: 1; text-align: left; min-width: 150px; }
+        label { display: block; margin-bottom: 5px; color: var(--text-muted); font-size: 0.9rem; }
+        input, select { width: 100%; padding: 10px; background-color: #2a2a2a; border: 1px solid var(--border); color: white; border-radius: 4px; box-sizing: border-box; }
+        button.action-btn { background-color: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button.action-btn:hover { background-color: #8a2525; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.95rem; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { color: var(--text-muted); font-weight: normal; }
+        
+        .stl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; margin-top: 20px; }
+        .stl-card { background-color: #2a2a2a; padding: 15px; border-radius: 6px; border: 1px solid var(--border); text-align: center; display: flex; flex-direction: column; justify-content: space-between;}
+        .stl-card h4 { margin: 0 0 10px 0; word-break: break-all; }
+        .tag { background-color: #333; font-size: 0.75rem; padding: 4px 8px; border-radius: 12px; margin: 2px; display: inline-block; border: 1px solid #555; }
+        .form-panel { background-color: #181818; padding: 15px; border-radius: 6px; margin-bottom: 25px; border: 1px solid var(--border); }
+
+        #viewer-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center; flex-direction: column; }
+        #viewer-container { width: 85%; height: 85%; background-color: #111; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+        #close-viewer { background-color: var(--accent); color: white; border: none; padding: 10px 30px; margin-bottom: 15px; cursor: pointer; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
+
+        .scrollable-table { max-height: 500px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px; margin-top: 15px; }
+        .badge-color { padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; display: inline-block; background-color: #444; color: #fff; }
+
+        .photo-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 15px; }
+        .photo-container { position: relative; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; aspect-ratio: 1; background: #141414; }
+        .photo-container img { width: 100%; height: 100%; object-fit: cover; }
+        .photo-delete { position: absolute; top: 2px; right: 2px; background: rgba(176,48,48,0.8); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        
+        .recipe-block { background: #141414; border: 1px solid #282828; padding: 12px; border-radius: 6px; margin-bottom: 10px; }
+        .recipe-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #222; padding-bottom: 4px; }
+
+        .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .dash-card { background: #1c1c1c; border: 1px solid var(--border); padding: 15px; border-radius: 6px; text-align: center; }
+        .dash-card .value { font-size: 1.6rem; font-weight: bold; color: var(--accent); margin-top: 5px; }
+        .dash-card .value.success-color { color: var(--success); }
+
+        .collapse-toggle-btn { background: none; border: none; color: var(--text-main); font-size: 1.1rem; cursor: pointer; padding: 5px 10px; margin-right: 5px; }
+
+        @media print {
+            body * { visibility: hidden; background: white !important; color: black !important; }
+            #print-section, #print-section * { visibility: visible; }
+            #print-section { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+            .no-print { display: none !important; }
+            .print-recipe-box { border: 1px solid #555; padding: 10px; margin-top: 10px; page-break-inside: avoid; }
+            .print-photo-grid { display: flex; gap: 10px; margin-top: 15px; }
+            .print-photo-grid img { width: 120px; height: 120px; object-fit: cover; border: 1px solid #000; }
+        }
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
+    
+    <script>
+        window.openTab = function(tabName) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            const btn = document.querySelector(`button[onclick="openTab('${tabName}')"]`);
+            if (btn) btn.classList.add('active');
+        };
+    </script>
+</head>
+<body>
+
+    <div id="login-screen">
+        <div class="login-box">
+            <h2>Glandular Glitch</h2>
+            <div class="form-group" style="margin-bottom:15px;"><input type="email" id="email" placeholder="Adresse e-mail" required></div>
+            <div class="form-group" style="margin-bottom:15px;"><input type="password" id="password" placeholder="Mot de passe" required></div>
+            <p id="login-error" style="color: var(--accent); font-size: 0.9rem; display: none;">Identifiants incorrects.</p>
+            <button class="action-btn" id="login-btn" style="width: 100%;">Se connecter</button>
+        </div>
+    </div>
+
+    <div id="edit-mini-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2500; justify-content:center; align-items:center;">
+        <div class="form-panel" style="width: 450px; background:#1e1e1e;">
+            <h3 style="margin-top:0;">✏️ Modifier le Projet</h3>
+            <input type="hidden" id="edit-mini-id">
+            <div class="form-group" style="margin-bottom:15px;"><label>Nom du projet</label><input type="text" id="edit-mini-name"></div>
+            <div class="form-group" style="margin-bottom:15px;">
+                <label>Origine / Fichier lié</label>
+                <input type="text" placeholder="Filtrer les impressions..." style="padding:4px; font-size:0.75rem; margin-bottom:2px;" oninput="window.filterPaintDropdown2(this, 'edit-mini-origin')">
+                <select id="edit-mini-origin" onchange="window.toggleCommercePrice(this.value, 'edit-commerce-price-group')"></select>
+            </div>
+            <div class="form-group" id="edit-commerce-price-group" style="display:none; margin-bottom:15px;">
+                <label>Prix d'achat (€)</label><input type="number" id="edit-mini-price" step="0.1" value="0">
+            </div>
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button class="action-btn" onclick="window.saveMiniEdit()" style="background:var(--success); flex:1;">Sauvegarder</button>
+                <button class="action-btn" onclick="document.getElementById('edit-mini-modal').style.display='none'" style="background:#555; flex:1;">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal édition ligne Journal d'impression -->
+    <div id="edit-log-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2500; justify-content:center; align-items:center;">
+        <div class="form-panel" style="width: 500px; background:#1e1e1e;">
+            <h3 style="margin-top:0;">✏️ Modifier l'entrée du journal</h3>
+            <input type="hidden" id="edit-log-id">
+            <div class="form-row">
+                <div class="form-group"><label>Fichier</label><input type="text" id="edit-log-file"></div>
+                <div class="form-group"><label>Résine</label><input type="text" id="edit-log-resin"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Exposition (s)</label><input type="number" id="edit-log-expo" step="0.1"></div>
+                <div class="form-group"><label>Coût estimé (€)</label><input type="number" id="edit-log-cost" step="0.01"></div>
+                <div class="form-group"><label>Résultat</label>
+                    <select id="edit-log-result"><option value="Succès">Succès</option><option value="Échec">Échec</option></select>
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom:15px;"><label>Date</label><input type="text" id="edit-log-date" placeholder="jj/mm/aaaa"></div>
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button class="action-btn" onclick="window.saveLogEdit()" style="background:var(--success); flex:1;">Sauvegarder</button>
+                <button class="action-btn" onclick="document.getElementById('edit-log-modal').style.display='none'" style="background:#555; flex:1;">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="viewer-modal">
+        <button id="close-viewer">Fermer la visionneuse</button>
+        <div id="viewer-container"></div>
+    </div>
+
+    <div id="print-section"></div>
+
+    <div id="app-container">
+        <nav class="no-print">
+            <h1>Glandular Glitch</h1>
+            <button class="tab-link active" onclick="openTab('miniatures')">Gestion & Pile de la Honte</button>
+            <button class="tab-link" onclick="openTab('paint-inventory')">Inventaire Peintures</button>
+            <button class="tab-link" onclick="openTab('logbook')">Journal d'Impression</button>
+            <button class="tab-link" onclick="openTab('stl')">Bibliothèque STL</button>
+            <button class="tab-link" onclick="openTab('cost')">Paramètres</button>
+            <button id="logout-btn" style="margin-top: auto; color: var(--accent); border-top: 1px solid var(--border);">Déconnexion</button>
+        </nav>
+
+        <main>
+            <section id="miniatures" class="tab-content active">
+                <h2>Tableau de Bord & Suivi "Pile de la Honte"</h2>
+                
+                <div class="dash-grid">
+                    <div class="dash-card"><div>Projets Totaux</div><div class="value" id="dash-total">0</div></div>
+                    <div class="dash-card"><div>Complétion</div><div class="value success-color" id="dash-percent">0%</div></div>
+                    <div class="dash-card"><div>En Peinture / Cours</div><div class="value" id="dash-wip" style="color:#e1a91a;">0</div></div>
+                    <div class="dash-card"><div>Investissement Étagère</div><div class="value" id="dash-cost-shame">0.00 €</div></div>
+                </div>
+
+                <div class="form-panel">
+                    <h3>⚔️ Ajouter un projet de figurine</h3>
+                    <div class="form-row" style="align-items: flex-end;">
+                        <div class="form-group" style="flex: 2;">
+                            <label>Nom de la figurine / escouade</label>
+                            <input type="text" id="mini-name" placeholder="ex: Chevalier Inquisiteur...">
+                        </div>
+                        <div class="form-group" style="flex: 2;">
+                            <label>Origine / Lier à une impression</label>
+                            <input type="text" placeholder="Filtrer..." style="padding:4px; font-size:0.75rem; margin-bottom:2px;" oninput="window.filterPaintDropdown2(this, 'mini-print-link')">
+                            <select id="mini-print-link" onchange="window.toggleCommercePrice(this.value, 'mini-commerce-price-group')">
+                                <option value="COMMERCE">-- Figurine du Commerce / Non liée --</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="mini-commerce-price-group" style="flex: 1;">
+                            <label>Prix achat (€)</label>
+                            <input type="number" id="mini-commerce-price" value="0" step="0.1" style="height:32px;">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Statut initial</label>
+                            <select id="mini-status" style="height:32px; padding:4px;">
+                                <option value="À imprimer/Acheter">À imprimer / Acheter</option>
+                                <option value="Imprimé/Reçu">Imprimé / Reçu</option>
+                                <option value="Sous-couché">Sous-couché</option>
+                                <option value="En cours">En cours de peinture</option>
+                                <option value="Fini">Terminé (Fini)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex: 0.5;">
+                            <button class="action-btn" id="btn-add-mini" style="width:100%; height:32px;">+ Créer</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <input type="text" id="mini-search" placeholder="🔍 Rechercher un projet par nom..." style="margin-bottom: 20px; font-size: 1.1rem; width: 100%; padding: 12px; background-color:#1e1e1e; border: 1px solid var(--border); color:#fff; border-radius:4px;">
+                <div id="miniatures-container"></div>
+            </section>
+
+            <section id="paint-inventory" class="tab-content">
+                <h2>Mon Inventaire de Peintures</h2>
+                <div class="form-panel">
+                    <h3>🎨 Ajouter une peinture manquante à l'inventaire</h3>
+                    <div class="form-row">
+                        <div class="form-group"><label>Nom de la peinture</label><input type="text" id="new-paint-name" placeholder="ex: Baal Red"></div>
+                        <div class="form-group"><label>Marque</label><input type="text" id="new-paint-brand" placeholder="ex: Citadel Contrast"></div>
+                        <div class="form-group">
+                            <label>Teinte / Couleur</label>
+                            <select id="new-paint-color">
+                                <option value="Rouge/Rose">Rouge/Rose</option><option value="Bleu">Bleu</option><option value="Vert">Vert</option>
+                                <option value="Jaune">Jaune</option><option value="Orange">Orange</option><option value="Violet">Violet</option>
+                                <option value="Turquoise">Turquoise</option><option value="Brun">Brun</option><option value="Peau/Chair">Peau/Chair</option>
+                                <option value="Métallique (Or)">Métallique (Or)</option><option value="Métallique (Argent)">Métallique (Argent)</option>
+                                <option value="Os/Beige">Os/Beige</option><option value="Gris">Gris</option><option value="Noir">Noir</option>
+                                <option value="Blanc">Blanc</option><option value="Autre/Effet">Autre/Effet</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="action-btn" id="btn-add-custom-paint">Ajouter à l'inventaire</button>
+                </div>
+                <div class="form-panel" style="background-color: #141414;">
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 2;"><label>Rechercher par nom ou marque</label><input type="text" id="search-paint" placeholder="Filtrer..."></div>
+                        <div class="form-group"><label>Filtrer par marque</label><select id="filter-paint-brand"><option value="Tous">Toutes les marques</option></select></div>
+                        <div class="form-group"><label>Filtrer par couleur</label>
+                            <select id="filter-paint-color">
+                                <option value="Tous">Toutes les couleurs</option><option value="Rouge/Rose">Rouge/Rose</option><option value="Bleu">Bleu</option>
+                                <option value="Vert">Vert</option><option value="Jaune">Jaune</option><option value="Orange">Orange</option>
+                                <option value="Violet">Violet</option><option value="Turquoise">Turquoise</option><option value="Brun">Brun</option>
+                                <option value="Peau/Chair">Peau/Chair</option><option value="Métallique (Or)">Métallique (Or)</option>
+                                <option value="Métallique (Argent)">Métallique (Argent)</option><option value="Os/Beige">Os/Beige</option>
+                                <option value="Gris">Gris</option><option value="Noir">Noir</option><option value="Blanc">Blanc</option>
+                                <option value="Autre/Effet">Autre/Effet</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="scrollable-table"><table><thead><tr><th>Nom de la peinture</th><th>Marque</th><th>Famille de Teinte</th><th style="width:50px; text-align:center;">Action</th></tr></thead><tbody id="inventory-tbody"></tbody></table></div>
+            </section>
+
+            <section id="logbook" class="tab-content">
+                <h2>Journal de Bord d'Impression</h2>
+                <div class="form-panel">
+                    <div class="form-row">
+                        <div class="form-group"><label>Fichier</label><input type="text" id="log-file" placeholder="ex: Epee_Lourde_OSL.stl"></div>
+                        <div class="form-group"><label>Résine</label><input type="text" id="log-resin" value="Gris Mat (Standard)"></div>
+                        <div class="form-group"><label>Exposition (s)</label><input type="number" id="log-expo" step="0.1" value="2.5"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Poids estimé (g)</label><input type="number" id="log-weight" value="50"></div>
+                        <div class="form-group"><label>Temps estimé (h)</label><input type="number" id="log-time" step="0.1" value="3.5"></div>
+                        <div class="form-group"><label>Résultat</label>
+                            <select id="log-result"><option value="Succès">Succès</option><option value="Échec">Échec</option></select>
+                        </div>
+                    </div>
+                    <button class="action-btn" id="btn-add-log">Enregistrer l'impression (Calcul auto)</button>
+                </div>
+                <table><thead><tr><th>Date</th><th>Fichier</th><th>Résine</th><th>Expo</th><th>Coût Estimé</th><th>Résultat</th><th style="width:80px; text-align:center;">Action</th></tr></thead><tbody id="logbook-tbody"></tbody></table>
+            </section>
+
+            <section id="stl" class="tab-content">
+                <h2>Bibliothèque STL (Mode Cloud + Local)</h2>
+                <div class="form-panel" style="border-color: var(--success);">
+                    <h3>Scan et Importation Automatique de Dossier</h3>
+                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">Les fichiers scannés seront aspirés dans la base de ce navigateur pour être visualisables instantanément.</p>
+                    <button class="action-btn" style="background-color: var(--success);" onclick="document.getElementById('folder-scanner').click()">Scanner mon dossier "stls"</button>
+                    <input type="file" id="folder-scanner" webkitdirectory directory multiple style="display:none;">
+                    <p id="scan-status" style="color: var(--success); font-size: 0.9rem; margin-top: 10px;"></p>
+                </div>
+                <div class="form-panel">
+                    <h3>Ajout et Importation Manuel</h3>
+                    <div class="form-row" style="align-items: flex-end;">
+                        <div class="form-group" style="flex: 2;">
+                            <label>Sélectionner le fichier .stl physique</label>
+                            <input type="file" id="stl-file" accept=".stl" style="background:#111;">
+                        </div>
+                        <div class="form-group" style="flex: 3;">
+                            <label>Tags (séparés par des virgules)</label>
+                            <input type="text" id="stl-tags" placeholder="ex: Monstre, Horreur...">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Lien Source (Drive, Boutique...)</label><input type="text" id="stl-link" placeholder="https://..."></div>
+                        <div class="form-group"><label>Notes / Paramètres d'impression</label><input type="text" id="stl-notes" placeholder="ex: Supports lourds sur l'épée, Echelle 110%"></div>
+                    </div>
+                    <button class="action-btn" id="btn-add-stl">Importer en bibliothèque</button>
+                </div>
+                <input type="text" id="stl-search" placeholder="🔍 Rechercher par nom ou tag..." style="margin-bottom: 20px; font-size: 1.1rem; width:100%; padding:12px; background-color:#1e1e1e; border:1px solid var(--border); color:#fff; border-radius:4px;">
+                <div class="stl-grid" id="stl-grid-container"></div>
+            </section>
+
+            <section id="cost" class="tab-content">
+                <h2>Paramètres & Tarifs</h2>
+                <div style="max-width: 500px;">
+                    <div class="form-group"><label>Prix résine (1kg) en €</label><input type="number" id="resinPrice" value="30" step="0.1"></div>
+                    <div class="form-group"><label>Conso machine (Watts)</label><input type="number" id="watts" value="50"></div>
+                    <div class="form-group"><label>Prix électricité (€/kWh)</label><input type="number" id="kwhPrice" value="0.25" step="0.01"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyAiOF3ER_rmcxJuXanX7BcmyqOV1pCUYLU",
+          authDomain: "glitch-tracker.firebaseapp.com",
+          projectId: "glitch-tracker",
+          storageBucket: "glitch-tracker.firebasestorage.app",
+          messagingSenderId: "537646792361",
+          appId: "1:537646792361:web:f5d9335373b97b1a2473b8"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- INVENTAIRE DE PEINTURES INJECTÉ (INTÉGRAL) ---
+        const BASE_PAINTS = [{"name": "Matt Black", "brand": "TheArmyPainter Fanatic", "color": "Noir"}, {"name": "Ash Grey", "brand": "TheArmyPainter Fanatic", "color": "Gris"}, {"name": "Matt White", "brand": "TheArmyPainter Fanatic", "color": "Blanc"}, {"name": "Dorado Skin", "brand": "TheArmyPainter Fanatic", "color": "Peau/Chair"}, {"name": "Barbarian Flesh", "brand": "TheArmyPainter Fanatic", "color": "Peau/Chair"}, {"name": "Deep Grey", "brand": "TheArmyPainter Fanatic", "color": "Gris"}, {"name": "Topaz Skin", "brand": "TheArmyPainter Fanatic", "color": "Jaune"}, {"name": "Onyx Skin", "brand": "TheArmyPainter Fanatic", "color": "Noir"}, {"name": "Thunderous Blue", "brand": "TheArmyPainter Fanatic", "color": "Bleu"}, {"name": "Wolf Grey", "brand": "TheArmyPainter Fanatic", "color": "Gris"}, {"name": "Ultramarine Blue", "brand": "TheArmyPainter Fanatic", "color": "Bleu"}, {"name": "Imperial Navy", "brand": "TheArmyPainter Fanatic", "color": "Bleu"}, {"name": "Crystal Blue", "brand": "TheArmyPainter Fanatic", "color": "Bleu"}, {"name": "Bright Sapphire", "brand": "TheArmyPainter Fanatic", "color": "Bleu"}, {"name": "Abyssal Blue", "brand": "TheArmyPainter Fanatic", "color": "Bleu"}, {"name": "Hydra Turquoise", "brand": "TheArmyPainter Fanatic", "color": "Turquoise"}, {"name": "Marine Mist", "brand": "TheArmyPainter Fanatic", "color": "Autre/Effet"}, {"name": "Pharaoh Guard", "brand": "TheArmyPainter Fanatic", "color": "Autre/Effet"}, {"name": "Aqua Alchemy", "brand": "TheArmyPainter Fanatic", "color": "Turquoise"}, {"name": "Angel Green", "brand": "TheArmyPainter Fanatic", "color": "Vert"}, {"name": "Greenskin", "brand": "TheArmyPainter Fanatic", "color": "Vert"}, {"name": "Rainforest", "brand": "TheArmyPainter Fanatic", "color": "Vert"}, {"name": "Autumn Sage", "brand": "TheArmyPainter Fanatic", "color": "Vert"}, {"name": "Army Green", "brand": "TheArmyPainter Fanatic", "color": "Vert"}, {"name": "Necrotic Flesh", "brand": "TheArmyPainter Fanatic", "color": "Vert"}, {"name": "Desert Yellow", "brand": "TheArmyPainter Fanatic", "color": "Jaune"}, {"name": "Daemonic Yellow", "brand": "TheArmyPainter Fanatic", "color": "Jaune"}, {"name": "Ice Yellow", "brand": "TheArmyPainter Fanatic", "color": "Jaune"}, {"name": "Effects: Warpaints Stabilizer", "brand": "TheArmyPainter Fanatic", "color": "Autre/Effet"}, {"name": "Ancient Stone", "brand": "TheArmyPainter Fanatic", "color": "Os/Beige"}, {"name": "Fur Brown", "brand": "TheArmyPainter Fanatic", "color": "Brun"}, {"name": "Lava Orange", "brand": "TheArmyPainter Fanatic", "color": "Orange"}, {"name": "Pure Red", "brand": "TheArmyPainter Fanatic", "color": "Rouge/Rose"}, {"name": "Wicked Pink", "brand": "TheArmyPainter Fanatic", "color": "Rouge/Rose"}, {"name": "Pixie Pink", "brand": "TheArmyPainter Fanatic", "color": "Rouge/Rose"}, {"name": "Alien Purple", "brand": "TheArmyPainter Fanatic", "color": "Violet"}, {"name": "Regal Violet", "brand": "TheArmyPainter Fanatic", "color": "Violet"}, {"name": "Glistening Gold", "brand": "TheArmyPainter Fanatic", "color": "Métallique (Or)"}, {"name": "Greedy Gold", "brand": "TheArmyPainter Fanatic", "color": "Métallique (Or)"}, {"name": "Weapon Bronze", "brand": "TheArmyPainter Fanatic", "color": "Métallique (Or)"}, {"name": "Plate Mail Metal", "brand": "TheArmyPainter Fanatic", "color": "Métallique (Argent)"}, {"name": "Shining Silver", "brand": "TheArmyPainter Fanatic", "color": "Métallique (Argent)"}, {"name": "Averland Sunset", "brand": "Citadel Base", "color": "Jaune"}, {"name": "Corax White", "brand": "Citadel Base", "color": "Blanc"}, {"name": "Leadbelcher", "brand": "Citadel Base", "color": "Autre/Effet"}, {"name": "Macragge Blue", "brand": "Citadel Base", "color": "Bleu"}, {"name": "Mephiston Red", "brand": "Citadel Base", "color": "Rouge/Rose"}, {"name": "Naggaroth Night", "brand": "Citadel Base", "color": "Autre/Effet"}, {"name": "Orruk Flesh", "brand": "Citadel Base", "color": "Peau/Chair"}, {"name": "Retributor Armour", "brand": "Citadel Base", "color": "Autre/Effet"}, {"name": "Rhinox Hide", "brand": "Citadel Base", "color": "Autre/Effet"}, {"name": "Waaagh! Flesh", "brand": "Citadel Base", "color": "Peau/Chair"}, {"name": "Abaddon Black", "brand": "Citadel Base", "color": "Noir"}, {"name": "Balthasar Gold", "brand": "Citadel Base", "color": "Métallique (Or)"}, {"name": "Bugman's Glow", "brand": "Citadel Base", "color": "Autre/Effet"}, {"name": "Caliban Green", "brand": "Citadel Base", "color": "Vert"}, {"name": "Celestra Grey", "brand": "Citadel Base", "color": "Gris"}, {"name": "Death Guard Green", "brand": "Citadel Base", "color": "Vert"}, {"name": "Deathworld Forest", "brand": "Citadel Base", "color": "Autre/Effet"}, {"name": "Dryad Bark", "brand": "Citadel Base", "color": "Autre/Effet"}, {"name": "Gal Vorbak Red", "brand": "Citadel Base", "color": "Rouge/Rose"}, {"name": "Incubi Darkness", "brand": "Citadel Base", "color": "Noir"}, {"name": "Ionrach Flesh", "brand": "Citadel Base", "color": "Peau/Chair"}, {"name": "Jokaero Orange", "brand": "Citadel Base", "color": "Orange"}, {"name": "Khorne Red", "brand": "Citadel Base", "color": "Rouge/Rose"}, {"name": "Lucius Lilac", "brand": "Citadel Base", "color": "Autre/Effet"}, {"name": "Mechanicus Standard Grey", "brand": "Citadel Base", "color": "Gris"}, {"name": "Morghast Bone", "brand": "Citadel Base", "color": "Os/Beige"}, {"name": "Mud", "brand": "Citadel Base", "color": "Brun"}, {"name": "Night Lords Blue", "brand": "Citadel Base", "color": "Bleu"}, {"name": "Rakarth Flesh", "brand": "Citadel Base", "color": "Peau/Chair"}, {"name": "Ratskin Flesh", "brand": "Citadel Base", "color": "Peau/Chair"}, {"name": "Screamer Pink", "brand": "Citadel Base", "color": "Rouge/Rose"}, {"name": "Screaming Bell", "brand": "Citadel Base", "color": "Autre/Effet"}, {"name": "Stegadon Scale Green", "brand": "Citadel Base", "color": "Vert"}, {"name": "The Fang", "brand": "Citadel Base", "color": "Autre/Effet"}, {"name": "Thousand Sons Blue", "brand": "Citadel Base", "color": "Bleu"}, {"name": "Zandri Dust", "brand": "Citadel Base", "color": "Autre/Effet"}, {"name": "Agrellan Earth", "brand": "Citadel Base", "color": "Brun"}, {"name": "Calgar Blue", "brand": "Citadel Layer", "color": "Bleu"}, {"name": "Cadian Fleshtone", "brand": "Citadel Layer", "color": "Peau/Chair"}, {"name": "Dawnstone", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "Elysian Green", "brand": "Citadel Layer", "color": "Vert"}, {"name": "Evil Sunz Scarlet", "brand": "Citadel Layer", "color": "Rouge/Rose"}, {"name": "Fenrisian Grey", "brand": "Citadel Layer", "color": "Gris"}, {"name": "Flash Gitz Yellow", "brand": "Citadel Layer", "color": "Jaune"}, {"name": "Gallya", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "Genestealer Purple", "brand": "Citadel Layer", "color": "Violet"}, {"name": "Ironbreaker", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "Kislev Flesh", "brand": "Citadel Layer", "color": "Peau/Chair"}, {"name": "Lothern Blue", "brand": "Citadel Layer", "color": "Bleu"}, {"name": "Moat Green", "brand": "Citadel Layer", "color": "Vert"}, {"name": "Ogryn Camo", "brand": "Citadel Layer", "color": "Vert"}, {"name": "Phalanx Yellow", "brand": "Citadel Layer", "color": "Jaune"}, {"name": "Runefang Steel", "brand": "Citadel Layer", "color": "Métallique (Argent)"}, {"name": "Slaanesh Grey", "brand": "Citadel Layer", "color": "Gris"}, {"name": "Stormhost Silver", "brand": "Citadel Layer", "color": "Métallique (Argent)"}, {"name": "Teclis Blue", "brand": "Citadel Layer", "color": "Bleu"}, {"name": "Troll Slayer Orange", "brand": "Citadel Layer", "color": "Orange"}, {"name": "Ushabti Bone", "brand": "Citadel Layer", "color": "Os/Beige"}, {"name": "Warboss Green", "brand": "Citadel Layer", "color": "Vert"}, {"name": "Warpstone Glow", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "White Scar", "brand": "Citadel Layer", "color": "Blanc"}, {"name": "Wild Rider Red", "brand": "Citadel Layer", "color": "Rouge/Rose"}, {"name": "Xereus Purple", "brand": "Citadel Layer", "color": "Violet"}, {"name": "Ymelec Blue", "brand": "Citadel Layer", "color": "Bleu"}, {"name": "Zamesi Desert", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "Administratum Grey", "brand": "Citadel Layer", "color": "Gris"}, {"name": "Ahriman Blue", "brand": "Citadel Layer", "color": "Bleu"}, {"name": "Alaitoc Blue", "brand": "Citadel Layer", "color": "Bleu"}, {"name": "Alphic Green", "brand": "Citadel Layer", "color": "Vert"}, {"name": "Auric Armour Gold", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "Balor Brown", "brand": "Citadel Layer", "color": "Brun"}, {"name": "Baneblade Brown", "brand": "Citadel Layer", "color": "Brun"}, {"name": "Bestigor Flesh", "brand": "Citadel Layer", "color": "Peau/Chair"}, {"name": "Bloodbreaker", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "Brass Scorpion", "brand": "Citadel Layer", "color": "Métallique (Or)"}, {"name": "Dark Reaper", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "Deepkin Flesh", "brand": "Citadel Layer", "color": "Peau/Chair"}, {"name": "Doombull Brown", "brand": "Citadel Layer", "color": "Brun"}, {"name": "Eshin Grey", "brand": "Citadel Layer", "color": "Gris"}, {"name": "Flayed One Flesh", "brand": "Citadel Layer", "color": "Peau/Chair"}, {"name": "Fulgurite Copper", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "Gehenna's Gold", "brand": "Citadel Layer", "color": "Métallique (Or)"}, {"name": "Gorthor Brown", "brand": "Citadel Layer", "color": "Brun"}, {"name": "Hashut Copper", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "Hoeth Blue", "brand": "Citadel Layer", "color": "Bleu"}, {"name": "Kabalite Green", "brand": "Citadel Layer", "color": "Vert"}, {"name": "Karak Stone", "brand": "Citadel Layer", "color": "Os/Beige"}, {"name": "Liberator Gold", "brand": "Citadel Layer", "color": "Métallique (Or)"}, {"name": "Loren Forest", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "Nurgling Green", "brand": "Citadel Layer", "color": "Vert"}, {"name": "Pallid Wych Flesh", "brand": "Citadel Layer", "color": "Peau/Chair"}, {"name": "Pink Horror", "brand": "Citadel Layer", "color": "Rouge/Rose"}, {"name": "Runelord Brass", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "Russ Grey", "brand": "Citadel Layer", "color": "Gris"}, {"name": "Skarsnik Green", "brand": "Citadel Layer", "color": "Vert"}, {"name": "Skrag Brown", "brand": "Citadel Layer", "color": "Brun"}, {"name": "Sotek Green", "brand": "Citadel Layer", "color": "Vert"}, {"name": "Stirland Mud", "brand": "Citadel Layer", "color": "Brun"}, {"name": "Straken Green", "brand": "Citadel Layer", "color": "Vert"}, {"name": "Sycorax Bronze", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "Temple Guard Blue", "brand": "Citadel Layer", "color": "Bleu"}, {"name": "Tuskgor Fur", "brand": "Citadel Layer", "color": "Brun"}, {"name": "Wazir Green", "brand": "Citadel Layer", "color": "Vert"}, {"name": "Warplock Bronze", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "Weirdboy Green", "brand": "Citadel Layer", "color": "Vert"}, {"name": "Contrast Medium", "brand": "Citadel Technical", "color": "Autre/Effet"}, {"name": "Lahmian Medium", "brand": "Citadel Technical", "color": "Autre/Effet"}, {"name": "Liquid Frost", "brand": "Citadel Technical", "color": "Autre/Effet"}, {"name": "Ardcoat", "brand": "Citadel Technical", "color": "Autre/Effet"}, {"name": "Stormshield", "brand": "Citadel Technical", "color": "Autre/Effet"}, {"name": "Agrax Earthshade", "brand": "Citadel Shade", "color": "Autre/Effet"}, {"name": "Nuln Oil", "brand": "Citadel Shade", "color": "Autre/Effet"}, {"name": "Seraphim Sepia", "brand": "Citadel Shade", "color": "Autre/Effet"}, {"name": "Piel Elfo", "brand": "GreenStuffWorld Acrylic Color", "color": "Autre/Effet"}, {"name": "Piel Humana", "brand": "GreenStuffWorld Acrylic Color", "color": "Autre/Effet"}, {"name": "Cyber Yellow", "brand": "GreenStuffWorld Acrylic Color", "color": "Jaune"}, {"name": "Sanguine Scarlet", "brand": "GreenStuffWorld Acrylic Color", "color": "Autre/Effet"}, {"name": "Andromena Violet", "brand": "GreenStuffWorld Acrylic Color", "color": "Violet"}, {"name": "Asurmen Blue", "brand": "Citadel Contrast", "color": "Bleu"}, {"name": "Baal Red", "brand": "Citadel Contrast", "color": "Rouge/Rose"}, {"name": "Black Legion", "brand": "Citadel Contrast", "color": "Noir"}, {"name": "Gore-grunta Fur", "brand": "Citadel Contrast", "color": "Brun"}, {"name": "Guilliman Flesh", "brand": "Citadel Contrast", "color": "Peau/Chair"}, {"name": "Imperial Fist", "brand": "Citadel Contrast", "color": "Autre/Effet"}, {"name": "Karandras Green", "brand": "Citadel Contrast", "color": "Vert"}, {"name": "Kroxigor Blue", "brand": "Citadel Contrast", "color": "Bleu"}, {"name": "Magmadroth Flame", "brand": "Citadel Contrast", "color": "Autre/Effet"}, {"name": "Mantis Warriors Green", "brand": "Citadel Contrast", "color": "Vert"}, {"name": "Striking Scorpion Green", "brand": "Citadel Contrast", "color": "Vert"}, {"name": "Talassar Blue", "brand": "Citadel Contrast", "color": "Bleu"}, {"name": "Terradon Turquoise", "brand": "Citadel Contrast", "color": "Turquoise"}, {"name": "Volupus Pink", "brand": "Citadel Contrast", "color": "Rouge/Rose"}, {"name": "Darkwood", "brand": "hound Orange", "color": "Brun"}, {"name": "Fluor Lime", "brand": "GreenStuffWorld Fluor", "color": "Autre/Effet"}, {"name": "Fluor Yellow", "brand": "GreenStuffWorld Fluor", "color": "Jaune"}, {"name": "Fluor Rose", "brand": "GreenStuffWorld Fluor", "color": "Rouge/Rose"}, {"name": "Fluor Blue", "brand": "GreenStuffWorld Fluor", "color": "Bleu"}, {"name": "Zealot Yellow", "brand": "TheArmyPainter SpeedPaints", "color": "Jaune"}, {"name": "Fire Giant Orange", "brand": "TheArmyPainter SpeedPaints", "color": "Orange"}, {"name": "Blood Red", "brand": "TheArmyPainter SpeedPaints", "color": "Rouge/Rose"}, {"name": "Hiveman Purple", "brand": "TheArmyPainter SpeedPaints", "color": "Violet"}, {"name": "Highlord Blue", "brand": "TheArmyPainter SpeedPaints", "color": "Bleu"}, {"name": "Camo Cloak", "brand": "TheArmyPainter SpeedPaints", "color": "Vert"}, {"name": "Gravelord Grey", "brand": "TheArmyPainter SpeedPaints", "color": "Gris"}, {"name": "Magic Blue", "brand": "TheArmyPainter SpeedPaints", "color": "Bleu"}, {"name": "Orc Skin", "brand": "TheArmyPainter SpeedPaints", "color": "Vert"}, {"name": "Dark Wood", "brand": "TheArmyPainter SpeedPaints", "color": "Brun"}, {"name": "Sand Golem", "brand": "TheArmyPainter SpeedPaints", "color": "Os/Beige"}, {"name": "Holy White", "brand": "TheArmyPainter SpeedPaints", "color": "Blanc"}, {"name": "Medium", "brand": "TheArmyPainter SpeedPaints", "color": "Autre/Effet"}, {"name": "Light Tone", "brand": "TheArmyPainter Washes", "color": "Autre/Effet"}, {"name": "Soft Tone", "brand": "TheArmyPainter Washes", "color": "Autre/Effet"}, {"name": "Strong Tone", "brand": "TheArmyPainter Washes", "color": "Autre/Effet"}, {"name": "Green Tone", "brand": "TheArmyPainter Washes", "color": "Vert"}, {"name": "Military Shader", "brand": "TheArmyPainter Washes", "color": "Autre/Effet"}, {"name": "Dark Tone", "brand": "TheArmyPainter Washes", "color": "Autre/Effet"}, {"name": "Red Tone", "brand": "TheArmyPainter Washes", "color": "Rouge/Rose"}, {"name": "Mid Brown", "brand": "TheArmyPainter Washes", "color": "Brun"}, {"name": "Purple Tone", "brand": "TheArmyPainter Washes", "color": "Violet"}, {"name": "Blue Tone", "brand": "TheArmyPainter Washes", "color": "Bleu"}, {"name": "Flesh Wash", "brand": "TheArmyPainter Washes", "color": "Peau/Chair"}, {"name": "Dry Rust", "brand": "TheArmyPainter Effects", "color": "Autre/Effet"}, {"name": "Glistening Blood", "brand": "TheArmyPainter Effects", "color": "Rouge/Rose"}, {"name": "Purple Alchemy", "brand": "TheArmyPainter SpeedPaints", "color": "Violet"}, {"name": "Crusader Skin", "brand": "TheArmyPainter SpeedPaints", "color": "Peau/Chair"}, {"name": "Maxx Darth", "brand": "GreenStuffWorld Others", "color": "Noir"}, {"name": "Hexwraith Flame", "brand": "Citadel Technical", "color": "Autre/Effet"}, {"name": "Sigmarite", "brand": "Citadel Dry", "color": "Jaune"}, {"name": "Tyrant Skull", "brand": "Citadel Dry", "color": "Os/Beige"}, {"name": "Astorath Red", "brand": "Citadel Dry", "color": "Rouge/Rose"}, {"name": "Reikland Fleshshade", "brand": "Citadel Shade", "color": "Peau/Chair"}, {"name": "Casandora Yellow", "brand": "Citadel Shade", "color": "Jaune"}, {"name": "Athonian Camoshade", "brand": "Citadel Shade", "color": "Autre/Effet"}, {"name": "Nighthaunt Gloom", "brand": "Citadel Technical", "color": "Bleu"}, {"name": "Chronus Blue", "brand": "Citadel Dry", "color": "Bleu"}, {"name": "Coelia Greenshade", "brand": "Citadel Shade", "color": "Vert"}, {"name": "John Blanche Masterclass: Blanchitsu Rust", "brand": "TheArmyPainter John Blanche Masterclass", "color": "Autre/Effet"}];
+
+        let allPaints = [];
+        let customPaintsList = [];
+        let hiddenPaintsList = [];
+        
+        let allMinis = [];
+        let allSTLs = [];
+        let printLogsCache = [];
+        let collapsedProjects = {};
+        let collapsedZones = {};
+
+        // COLLAPSE HANDLERS
+        window.toggleProjectCollapse = function(miniId) {
+            const body = document.getElementById(`project-body-${miniId}`);
+            const arrow = document.getElementById(`arrow-proj-${miniId}`);
+            if (!body) return;
+            if (body.style.display === "none") {
+                body.style.display = "block";
+                arrow.innerText = "🔽";
+                collapsedProjects[miniId] = false;
+            } else {
+                body.style.display = "none";
+                arrow.innerText = "▶️";
+                collapsedProjects[miniId] = true;
+            }
+        };
+
+        window.toggleZoneCollapse = function(miniId, zoneId) {
+            const body = document.getElementById(`zone-body-${miniId}-${zoneId}`);
+            const arrow = document.getElementById(`arrow-zone-${miniId}-${zoneId}`);
+            if (!body) return;
+            if (body.style.display === "none") {
+                body.style.display = "block";
+                arrow.innerText = "🔽";
+                collapsedZones[`${miniId}_${zoneId}`] = false;
+            } else {
+                body.style.display = "none";
+                arrow.innerText = "▶️";
+                collapsedZones[`${miniId}_${zoneId}`] = true;
+            }
+        };
+
+        window.toggleCommercePrice = function(val, groupId) {
+            const group = document.getElementById(groupId);
+            if(group) group.style.display = (val === 'COMMERCE') ? 'block' : 'none';
+        };
+
+        // -- AUTHENTIFICATION --
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-container').style.display = 'flex';
+                window.openTab('miniatures');
+                
+                loadAllPaintsData();
+                loadSTLLibrary();
+                loadPrintLogs(); 
+            } else {
+                document.getElementById('login-screen').style.display = 'flex';
+                document.getElementById('app-container').style.display = 'none';
+            }
+        });
+
+        document.getElementById('login-btn').addEventListener('click', () => {
+            signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value)
+                .catch(() => document.getElementById('login-error').style.display = 'block');
+        });
+        document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
+
+        // -- INVENTAIRE PEINTURES (Ajout suppression) --
+        function loadAllPaintsData() {
+            onSnapshot(collection(db, "hidden_paints"), (snap) => {
+                hiddenPaintsList = [];
+                snap.forEach(doc => hiddenPaintsList.push({ id: doc.id, ...doc.data() }));
+                rebuildPaintsArray();
+            });
+            onSnapshot(collection(db, "custom_paints"), (snap) => {
+                customPaintsList = [];
+                snap.forEach(doc => customPaintsList.push({ id: doc.id, isCustom: true, ...doc.data() }));
+                rebuildPaintsArray();
+            });
+        }
+
+        function rebuildPaintsArray() {
+            const visibleBase = BASE_PAINTS.filter(bp => !hiddenPaintsList.some(hp => hp.name === bp.name && hp.brand === bp.brand)).map(p => ({...p, isCustom: false}));
+            allPaints = [...visibleBase, ...customPaintsList];
+            allPaints.sort((a, b) => a.name.localeCompare(b.name));
+            buildBrandFilters();
+            renderInventoryTable();
+            if(allMinis.length > 0) renderMiniatures(allMinis);
+        }
+
+        document.getElementById('btn-add-custom-paint').addEventListener('click', async () => {
+            const name = document.getElementById('new-paint-name').value.trim();
+            const brand = document.getElementById('new-paint-brand').value.trim();
+            const color = document.getElementById('new-paint-color').value;
+            if (name && brand) {
+                await addDoc(collection(db, "custom_paints"), { name, brand, color });
+                document.getElementById('new-paint-name').value = '';
+                document.getElementById('new-paint-brand').value = '';
+            }
+        });
+
+        window.deletePaint = async function(id, isCustom, name, brand) {
+            if(confirm(`Supprimer la peinture ${name} de ton inventaire ?`)) {
+                if(isCustom) {
+                    await deleteDoc(doc(db, "custom_paints", id));
+                } else {
+                    await addDoc(collection(db, "hidden_paints"), { name, brand });
+                }
+            }
+        };
+
+        function buildBrandFilters() {
+            const select = document.getElementById('filter-paint-brand');
+            const savedValue = select.value;
+            const brands = [...new Set(allPaints.map(p => p.brand))].sort();
+            select.innerHTML = '<option value="Tous">Toutes les marques</option>';
+            brands.forEach(b => select.innerHTML += `<option value="${b}">${b}</option>`);
+            if(savedValue) select.value = savedValue;
+        }
+
+        function renderInventoryTable() {
+            const tbody = document.getElementById('inventory-tbody');
+            const search = document.getElementById('search-paint').value.toLowerCase();
+            const brandFilter = document.getElementById('filter-paint-brand').value;
+            const colorFilter = document.getElementById('filter-paint-color').value;
+            tbody.innerHTML = '';
+            allPaints.forEach(p => {
+                const matchSearch = p.name.toLowerCase().includes(search) || p.brand.toLowerCase().includes(search);
+                const matchBrand = brandFilter === 'Tous' || p.brand === brandFilter;
+                const matchColor = colorFilter === 'Tous' || p.color === colorFilter;
+                if (matchSearch && matchBrand && matchColor) {
+                    tbody.innerHTML += `<tr>
+                        <td><strong>${p.name}</strong></td>
+                        <td>${p.brand}</td>
+                        <td><span class="badge-color">${p.color}</span></td>
+                        <td style="text-align:center;"><button onclick="window.deletePaint('${p.id || ''}', ${p.isCustom}, '${p.name.replace(/'/g, "\\'")}', '${p.brand.replace(/'/g, "\\'")}')" style="background:transparent; border:none; color:var(--accent); cursor:pointer; font-weight:bold; font-size:1.1rem;">✕</button></td>
+                    </tr>`;
+                }
+            });
+        }
+        document.getElementById('search-paint').addEventListener('input', renderInventoryTable);
+        document.getElementById('filter-paint-brand').addEventListener('change', renderInventoryTable);
+        document.getElementById('filter-paint-color').addEventListener('change', renderInventoryTable);
+
+        // -- JOURNAL IMPRESSION --
+        document.getElementById('btn-add-log').addEventListener('click', async () => {
+            const file = document.getElementById('log-file').value;
+            const resin = document.getElementById('log-resin').value;
+            const expo = document.getElementById('log-expo').value;
+            const weight = parseFloat(document.getElementById('log-weight').value);
+            const time = parseFloat(document.getElementById('log-time').value);
+            const result = document.getElementById('log-result').value;
+            const resinPrice = parseFloat(document.getElementById('resinPrice').value);
+            const watts = parseFloat(document.getElementById('watts').value);
+            const kwhPrice = parseFloat(document.getElementById('kwhPrice').value);
+            const totalCost = (((weight / 1000) * resinPrice) + (time * (watts / 1000) * kwhPrice)).toFixed(2);
+            if(file) {
+                await addDoc(collection(db, "print_logs"), { file, resin, expo, cost: totalCost, result, date: new Date().toLocaleDateString('fr-FR'), timestamp: serverTimestamp() });
+                document.getElementById('log-file').value = '';
+            }
+        });
+
+        function loadPrintLogs() {
+            onSnapshot(query(collection(db, "print_logs"), orderBy("timestamp", "desc")), (snapshot) => {
+                const tbody = document.getElementById('logbook-tbody');
+                const miniPrintSelect = document.getElementById('mini-print-link');
+                
+                tbody.innerHTML = '';
+                miniPrintSelect.innerHTML = '<option value="COMMERCE">-- Figurine du Commerce / Non liée --</option>';
+                printLogsCache = [];
+                
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const logItem = { id: doc.id, ...data };
+                    printLogsCache.push(logItem);
+                    
+                    const color = data.result === 'Succès' ? 'var(--success)' : 'var(--accent)';
+                    tbody.innerHTML += `<tr>
+                        <td>${data.date||'-'}</td>
+                        <td>${data.file}</td>
+                        <td>${data.resin}</td>
+                        <td>${data.expo}s</td>
+                        <td><strong>${data.cost} €</strong></td>
+                        <td style="color: ${color}; font-weight: bold;">${data.result}</td>
+                        <td style="text-align:center;">
+                            <button onclick="window.openEditLogModal('${logItem.id}')" style="background:transparent; border:none; color:#aaa; cursor:pointer; font-size:1rem;" title="Modifier">✏️</button>
+                        </td>
+                    </tr>`;
+                    
+                    if (data.result === 'Succès') {
+                        miniPrintSelect.innerHTML += `<option value="${logItem.id}">${data.date} - ${data.file} (${data.cost}€)</option>`;
+                    }
+                });
+
+                if(allMinis.length === 0) loadMiniatures();
+                else { calculateDashboardStats(); renderMiniatures(allMinis); }
+            });
+        }
+
+        window.openEditLogModal = function(logId) {
+            const log = printLogsCache.find(l => l.id === logId);
+            if (!log) return;
+            document.getElementById('edit-log-id').value = logId;
+            document.getElementById('edit-log-file').value = log.file || '';
+            document.getElementById('edit-log-resin').value = log.resin || '';
+            document.getElementById('edit-log-expo').value = log.expo || '';
+            document.getElementById('edit-log-cost').value = log.cost || '';
+            document.getElementById('edit-log-result').value = log.result || 'Succès';
+            document.getElementById('edit-log-date').value = log.date || '';
+            document.getElementById('edit-log-modal').style.display = 'flex';
+        };
+
+        window.saveLogEdit = async function() {
+            const id = document.getElementById('edit-log-id').value;
+            const file = document.getElementById('edit-log-file').value.trim();
+            const resin = document.getElementById('edit-log-resin').value.trim();
+            const expo = document.getElementById('edit-log-expo').value;
+            const cost = parseFloat(document.getElementById('edit-log-cost').value).toFixed(2);
+            const result = document.getElementById('edit-log-result').value;
+            const date = document.getElementById('edit-log-date').value.trim();
+            if (!file) return alert("Le nom du fichier est obligatoire.");
+            await updateDoc(doc(db, "print_logs", id), { file, resin, expo, cost, result, date });
+            document.getElementById('edit-log-modal').style.display = 'none';
+        };
+
+        // -- FIGURINES & RECCETTES --
+        function loadMiniatures() {
+            onSnapshot(query(collection(db, "miniatures"), orderBy("timestamp", "desc")), (snapshot) => {
+                allMinis = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if(!data.photos) data.photos = [];
+                    if(!data.status) data.status = "À imprimer/Acheter";
+                    if(!data.printLogId) data.printLogId = data.origin || "COMMERCE";
+                    allMinis.push({ id: doc.id, ...data });
+                });
+                calculateDashboardStats();
+                renderMiniatures(allMinis);
+            });
+        }
+
+        document.getElementById('btn-add-mini').addEventListener('click', async () => {
+            const name = document.getElementById('mini-name').value.trim();
+            const printLogId = document.getElementById('mini-print-link').value;
+            const status = document.getElementById('mini-status').value;
+            const price = parseFloat(document.getElementById('mini-commerce-price').value) || 0;
+            if (name) {
+                await addDoc(collection(db, "miniatures"), { name, printLogId, status, price, zones: [], photos: [], timestamp: serverTimestamp() });
+                document.getElementById('mini-name').value = '';
+                document.getElementById('mini-print-link').value = 'COMMERCE';
+                document.getElementById('mini-commerce-price').value = '0';
+                window.toggleCommercePrice('COMMERCE', 'mini-commerce-price-group');
+            }
+        });
+
+        // Édition Globale Projet
+        window.openEditMiniModal = function(id) {
+            const mini = allMinis.find(m => m.id === id);
+            document.getElementById('edit-mini-id').value = id;
+            document.getElementById('edit-mini-name').value = mini.name;
+            document.getElementById('edit-mini-price').value = mini.price || 0;
+            
+            const select = document.getElementById('edit-mini-origin');
+            select.innerHTML = '<option value="COMMERCE">-- Figurine du Commerce / Non liée --</option>';
+            printLogsCache.forEach(log => {
+                if (log.result === 'Succès') {
+                    select.innerHTML += `<option value="${log.id}">${log.date} - ${log.file} (${log.cost}€)</option>`;
+                }
+            });
+            select.value = mini.printLogId || 'COMMERCE';
+            window.toggleCommercePrice(select.value, 'edit-commerce-price-group');
+            
+            document.getElementById('edit-mini-modal').style.display = 'flex';
+        };
+
+        window.saveMiniEdit = async function() {
+            const id = document.getElementById('edit-mini-id').value;
+            const name = document.getElementById('edit-mini-name').value.trim();
+            const printLogId = document.getElementById('edit-mini-origin').value;
+            const price = parseFloat(document.getElementById('edit-mini-price').value) || 0;
+            
+            await updateDoc(doc(db, "miniatures", id), { name, printLogId, price });
+            document.getElementById('edit-mini-modal').style.display = 'none';
+        };
+
+        window.editZoneName = async function(miniId, zoneId, currentName) {
+            const newName = prompt("Nouveau nom pour ce sous-rang :", currentName);
+            if (newName && newName.trim() !== "") {
+                const mini = allMinis.find(m => m.id === miniId);
+                const updatedZones = mini.zones.map(z => z.id === zoneId ? { ...z, name: newName.trim() } : z);
+                await updateDoc(doc(db, "miniatures", miniId), { zones: updatedZones });
+            }
+        };
+
+        window.updateMiniStatus = async function(miniId, newStatus) {
+            await updateDoc(doc(db, "miniatures", miniId), { status: newStatus });
+        };
+
+        window.deleteMiniature = async function(id) {
+            if(confirm("Supprimer définitivement ce projet ?")) {
+                await deleteDoc(doc(db, "miniatures", id));
+            }
+        };
+
+        function calculateDashboardStats() {
+            const total = allMinis.length;
+            const finished = allMinis.filter(m => m.status === 'Fini').length;
+            const wip = allMinis.filter(m => m.status === 'En cours').length;
+            const percent = total > 0 ? Math.round((finished / total) * 100) : 0;
+            
+            let totalShameCost = 0;
+            allMinis.forEach(m => {
+                if (m.status !== 'Fini') {
+                    if (m.printLogId && m.printLogId !== 'COMMERCE') {
+                        const matchingLog = printLogsCache.find(log => log.id === m.printLogId);
+                        if (matchingLog) totalShameCost += parseFloat(matchingLog.cost || 0);
+                    } else if (m.printLogId === 'COMMERCE' || m.origin === 'COMMERCE') {
+                        totalShameCost += parseFloat(m.price || 0);
+                    }
+                }
+            });
+            document.getElementById('dash-total').innerText = total;
+            document.getElementById('dash-percent').innerText = percent + "%";
+            document.getElementById('dash-wip').innerText = wip;
+            document.getElementById('dash-cost-shame').innerText = totalShameCost.toFixed(2) + " €";
+        }
+
+        window.exportToPDF = function(miniId) {
+            const mini = allMinis.find(m => m.id === miniId);
+            const printSection = document.getElementById('print-section');
+            let zonesPrintHTML = '';
+            mini.zones.forEach(z => {
+                let pLines = z.paints.map(p => {
+                    const comps = p.components.map(c => `${c.ratio}x [${c.brand}] ${c.name}`).join(' + ');
+                    return `<li><strong>[${p.type}]</strong> ${comps} ${p.info ? `<em>(${p.info})</em>` : ''}</li>`;
+                }).join('');
+                zonesPrintHTML += `<div class="print-recipe-box"><h3>Zone : ${z.name}</h3><ul>${pLines || '<li>Aucune étape enregistrée.</li>'}</ul></div>`;
+            });
+            let photosPrintHTML = mini.photos.map(p => `<img src="${p}">`).join('');
+            
+            let originText = 'Figurine du Commerce';
+            if(mini.printLogId !== 'COMMERCE') {
+                const log = printLogsCache.find(l => l.id === mini.printLogId);
+                if(log) originText = `Imprimé le ${log.date} : ${log.file}`;
+            }
+
+            printSection.innerHTML = `<div style="font-family: sans-serif; color: black; background: white;"><h1>Fiche Recette : ${mini.name}</h1><p><strong>Statut :</strong> ${mini.status} | <strong>Origine :</strong> ${originText}</p><div><h2>🎨 Recettes</h2>${zonesPrintHTML || '<p>Aucune recette.</p>'}</div><div style="margin-top: 30px;"><h2>📷 Photos</h2><div class="print-photo-grid">${photosPrintHTML || '<p>Aucune illustration.</p>'}</div></div></div>`;
+            window.print();
+        };
+
+        window.addPhotoToMini = function(miniId, input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const photoKey = `photo_${miniId}_${Date.now()}_${file.name}`;
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    try {
+                        // Store the blob in localforage (stays on this device)
+                        await localforage.setItem(photoKey, e.target.result);
+                        // Only save the key reference in Firestore (very small)
+                        const mini = allMinis.find(m => m.id === miniId);
+                        const updatedPhotos = [...mini.photos, { type: 'local', key: photoKey }];
+                        await updateDoc(doc(db, "miniatures", miniId), { photos: updatedPhotos });
+                    } catch(err) {
+                        console.error("Erreur lors de l'enregistrement de la photo :", err);
+                        alert("Erreur lors de l'enregistrement de la photo.");
+                    }
+                };
+                reader.readAsDataURL(file);
+                // Reset input so the same file can be re-selected if needed
+                input.value = '';
+            }
+        };
+
+        window.addPhotoUrlToMini = async function(miniId) {
+            const url = prompt("Colle le lien URL de ton image :");
+            if(!url) return;
+            const mini = allMinis.find(m => m.id === miniId);
+            const updatedPhotos = [...mini.photos, { type: 'url', src: url }];
+            await updateDoc(doc(db, "miniatures", miniId), { photos: updatedPhotos });
+        };
+
+        window.deletePhotoFromMini = async function(miniId, index) {
+            const mini = allMinis.find(m => m.id === miniId);
+            const updatedPhotos = mini.photos.filter((_, i) => i !== index);
+            await updateDoc(doc(db, "miniatures", miniId), { photos: updatedPhotos });
+        };
+
+        window.addZone = async function(miniId) {
+            const input = document.getElementById(`input-zone-${miniId}`);
+            const zoneName = input.value.trim();
+            if (!zoneName) return;
+            const mini = allMinis.find(m => m.id === miniId);
+            const updatedZones = [...mini.zones, { id: 'z_' + Date.now(), name: zoneName, paints: [] }];
+            await updateDoc(doc(db, "miniatures", miniId), { zones: updatedZones });
+            input.value = '';
+        };
+
+        window.deleteZone = async function(miniId, zoneId) {
+            const mini = allMinis.find(m => m.id === miniId);
+            const updatedZones = mini.zones.filter(z => z.id !== zoneId);
+            await updateDoc(doc(db, "miniatures", miniId), { zones: updatedZones });
+        };
+
+        window.addPaintToZone = async function(miniId, zoneId) {
+            const type = document.getElementById(`select-type-${miniId}-${zoneId}`).value;
+            const customType = document.getElementById(`input-custom-type-${miniId}-${zoneId}`).value.trim();
+            const finalType = type === "Perso" ? (customType || "Étape Perso") : type;
+            const p1Val = document.getElementById(`select-p1-${miniId}-${zoneId}`).value;
+            const r1 = document.getElementById(`ratio-p1-${miniId}-${zoneId}`).value.trim();
+            const p2Val = document.getElementById(`select-p2-${miniId}-${zoneId}`).value;
+            const r2 = document.getElementById(`ratio-p2-${miniId}-${zoneId}`).value.trim();
+            const info = document.getElementById(`info-${miniId}-${zoneId}`).value.trim();
+
+            if (!p1Val) return;
+            const [b1, n1] = p1Val.split('|||');
+            
+            let components = [{ brand: b1, name: n1, ratio: r1 || "1" }];
+            if (p2Val) {
+                const [b2, n2] = p2Val.split('|||');
+                components.push({ brand: b2, name: n2, ratio: r2 || "1" });
+            }
+
+            const mini = allMinis.find(m => m.id === miniId);
+            const updatedZones = mini.zones.map(z => {
+                if (z.id === zoneId) return { ...z, paints: [...z.paints, { id: 'p_' + Date.now(), type: finalType, components, info }] };
+                return z;
+            });
+
+            await updateDoc(doc(db, "miniatures", miniId), { zones: updatedZones });
+            document.getElementById(`input-custom-type-${miniId}-${zoneId}`).value = '';
+            document.getElementById(`info-${miniId}-${zoneId}`).value = '';
+        };
+
+        window.deletePaintFromZone = async function(miniId, zoneId, paintId) {
+            const mini = allMinis.find(m => m.id === miniId);
+            const updatedZones = mini.zones.map(z => {
+                if (z.id === zoneId) return { ...z, paints: z.paints.filter(p => p.id !== paintId) };
+                return z;
+            });
+            await updateDoc(doc(db, "miniatures", miniId), { zones: updatedZones });
+        };
+
+        window.toggleCustomTypeInput = function(select, id) {
+            document.getElementById(`input-custom-type-${id}`).style.display = select.value === "Perso" ? "block" : "none";
+        };
+
+        window.filterPaintDropdown2 = function(input, selectId) {
+            const term = input.value.toLowerCase();
+            const select = document.getElementById(selectId);
+            for(let option of select.options) {
+                if(option.value === "COMMERCE" || option.value === "") { option.style.display = ""; continue; }
+                option.style.display = option.text.toLowerCase().includes(term) ? "" : "none";
+            }
+        };
+
+        function renderMiniatures(minis) {
+            const container = document.getElementById('miniatures-container');
+            container.innerHTML = '';
+            
+            const term = document.getElementById('mini-search') ? document.getElementById('mini-search').value.toLowerCase() : '';
+            const displayList = minis.filter(m => m.name.toLowerCase().includes(term));
+
+            if (displayList.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-muted); text-align:center; padding:20px;">Aucun projet trouvé.</p>';
+                return;
+            }
+
+            const paintOptions = allPaints.map(p => `<option value="${p.brand}|||${p.name}">[${p.brand}] ${p.name}</option>`).join('');
+
+            displayList.forEach(mini => {
+                let zonesHTML = '';
+                mini.zones.forEach(zone => {
+                    const groupedPaints = {};
+                    zone.paints.forEach(p => {
+                        if (!groupedPaints[p.type]) groupedPaints[p.type] = [];
+                        groupedPaints[p.type].push(p);
+                    });
+
+                    let recipeBlocksHTML = '';
+                    Object.keys(groupedPaints).forEach(type => {
+                        let linesHTML = groupedPaints[type].map(p => {
+                            const compStr = p.components.map(c => `<strong>${c.ratio}x</strong> [${c.brand}] ${c.name}`).join(' + ');
+                            const infoStr = p.info ? `<br><span style="color:var(--text-main); font-style:italic;">🎨 Note : ${p.info}</span>` : '';
+                            return `
+                                <div style="background:#222; padding:8px; margin:6px 0; border-radius:4px; display:flex; justify-content:space-between; align-items:center; border-left:3px solid var(--accent);">
+                                    <span style="font-size:0.85rem; color:#fff;">${compStr} ${infoStr}</span>
+                                    <span style="color:var(--accent); cursor:pointer; font-weight:bold; padding:2px 8px;" onclick="window.deletePaintFromZone('${mini.id}', '${zone.id}', '${p.id}')">✕</span>
+                                </div>
+                            `;
+                        }).join('');
+                        recipeBlocksHTML += `<div class="recipe-block"><div class="recipe-title-row"><h5 style="margin:0; color:var(--text-muted); font-size:0.8rem; text-transform:uppercase;">${type}</h5></div>${linesHTML}</div>`;
+                    });
+
+                    const isZoneCollapsed = collapsedZones[`${mini.id}_${zone.id}`] === true;
+                    zonesHTML += `
+                        <div style="background:#1e1e1e; border:1px solid var(--border); padding:15px; margin-top:15px; border-radius:6px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:12px; cursor:pointer;" onclick="window.toggleZoneCollapse('${mini.id}', '${zone.id}')">
+                                <h4 style="margin:0; color:#fff; font-size:1rem;"><button class="collapse-toggle-btn" id="arrow-zone-${mini.id}-${zone.id}">${isZoneCollapsed ? '▶️' : '🔽'}</button>🎨 Zone : ${zone.name}</h4>
+                                <div style="display:flex; gap:5px;">
+                                    <button class="action-btn" style="background:#333; padding:2px 6px; font-size:0.75rem; margin:0;" onclick="event.stopPropagation(); window.editZoneName('${mini.id}', '${zone.id}', '${zone.name.replace(/'/g, "\\'")}')">✏️ Éditer</button>
+                                    <button class="action-btn" style="background:#444; padding:2px 6px; font-size:0.75rem; margin:0;" onclick="event.stopPropagation(); window.deleteZone('${mini.id}', '${zone.id}')">Supprimer la zone</button>
+                                </div>
+                            </div>
+                            
+                            <div id="zone-body-${mini.id}-${zone.id}" style="display: ${isZoneCollapsed ? 'none' : 'block'};">
+                                <div style="background:#141414; padding:12px; border-radius:4px; margin-bottom:15px; border:1px solid #252525;">
+                                    <div class="form-row">
+                                        <div class="form-group" style="min-width:120px;">
+                                            <label style="font-size:0.75rem;">Type d'Étape</label>
+                                            <select id="select-type-${mini.id}-${zone.id}" onchange="window.toggleCustomTypeInput(this, '${mini.id}-${zone.id}')" style="height:32px; padding:4px; font-size:0.8rem;">
+                                                <option value="Base">Base</option><option value="Éclaircissement">Éclaircissement</option><option value="Ombrage">Ombrage</option><option value="Perso">Nom personnalisé...</option>
+                                            </select>
+                                            <input type="text" id="input-custom-type-${mini.id}-${zone.id}" placeholder="Ex: Glacis NMM..." style="display:none; margin-top:5px; padding:4px; font-size:0.8rem; height:28px;">
+                                        </div>
+                                        <div class="form-group" style="flex:2;">
+                                            <label style="font-size:0.75rem;">Couleur principale / Médium</label>
+                                            <input type="text" placeholder="Filtrer..." style="padding:2px; font-size:0.75rem; height:24px; margin-bottom:2px;" oninput="window.filterPaintDropdown2(this, 'select-p1-${mini.id}-${zone.id}')">
+                                            <select id="select-p1-${mini.id}-${zone.id}" style="height:32px; padding:4px; font-size:0.8rem;">${paintOptions}</select>
+                                            <input type="text" id="ratio-p1-${mini.id}-${zone.id}" placeholder="Ratio" style="margin-top:4px; padding:4px; font-size:0.8rem; height:28px;">
+                                        </div>
+                                        <div class="form-group" style="flex:2;">
+                                            <label style="font-size:0.75rem;">Seconde Couleur (Optionnel)</label>
+                                            <input type="text" placeholder="Filtrer..." style="padding:2px; font-size:0.75rem; height:24px; margin-bottom:2px;" oninput="window.filterPaintDropdown2(this, 'select-p2-${mini.id}-${zone.id}')">
+                                            <select id="select-p2-${mini.id}-${zone.id}" style="height:32px; padding:4px; font-size:0.8rem;"><option value="">-- Aucun --</option>${paintOptions}</select>
+                                            <input type="text" id="ratio-p2-${mini.id}-${zone.id}" placeholder="Ratio" style="margin-top:4px; padding:4px; font-size:0.8rem; height:28px;">
+                                        </div>
+                                    </div>
+                                    <div class="form-row" style="align-items:flex-end;">
+                                        <div class="form-group" style="flex:3;">
+                                            <label style="font-size:0.75rem;">Notes / Dilution</label>
+                                            <input type="text" id="info-${mini.id}-${zone.id}" placeholder="Ex: Dilution 1:9, Loaded Brush..." style="height:32px; padding:4px; font-size:0.8rem;">
+                                        </div>
+                                        <button class="action-btn" style="background:var(--success); height:32px; padding:0 20px; font-size:0.8rem; margin:0;" onclick="window.addPaintToZone('${mini.id}', '${zone.id}')">Enregistrer l'étape</button>
+                                    </div>
+                                </div>
+                                <div>${recipeBlocksHTML || '<div style="color:var(--text-muted); font-size:0.85rem; font-style:italic;">Aucune étape.</div>'}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                // Build photo gallery: support legacy base64 strings and new {type, key/src} objects
+                let photosHTML = mini.photos.map((img, idx) => {
+                    const photoId = `photo-img-${mini.id}-${idx}`;
+                    if (typeof img === 'string') {
+                        return `<div class="photo-container"><img id="${photoId}" src="${img}"><button class="photo-delete" onclick="window.deletePhotoFromMini('${mini.id}', ${idx})">✕</button></div>`;
+                    } else if (img.type === 'url') {
+                        return `<div class="photo-container"><img id="${photoId}" src="${img.src}"><button class="photo-delete" onclick="window.deletePhotoFromMini('${mini.id}', ${idx})">✕</button></div>`;
+                    } else if (img.type === 'local') {
+                        return `<div class="photo-container"><img id="${photoId}" src="" style="opacity:0.3;" data-localkey="${img.key}"><button class="photo-delete" onclick="window.deletePhotoFromMini('${mini.id}', ${idx})">✕</button></div>`;
+                    }
+                    return '';
+                }).join('');
+
+                const isProjectCollapsed = collapsedProjects[mini.id] === true;
+                
+                let originText = `📦 Commerce (${mini.price || 0}€)`;
+                if (mini.printLogId && mini.printLogId !== 'COMMERCE') {
+                    const log = printLogsCache.find(l => l.id === mini.printLogId);
+                    if (log) originText = `⚙️ Imprimé le ${log.date} : ${log.file} (${log.cost}€)`;
+                    else originText = `⚙️ Impression liée introuvable`;
+                }
+
+                container.innerHTML += `
+                    <div class="form-panel" style="background-color: var(--panel-bg); border: 1px solid var(--border); padding:20px; margin-bottom:35px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:15px; cursor:pointer;" onclick="window.toggleProjectCollapse('${mini.id}')">
+                            <div style="display:flex; align-items:center;">
+                                <button class="collapse-toggle-btn" id="arrow-proj-${mini.id}">${isProjectCollapsed ? '▶️' : '🔽'}</button>
+                                <div>
+                                    <h3 style="margin:0; font-size:1.3rem; color:#fff;">⚔️ ${mini.name}</h3>
+                                    <span style="font-size:0.8rem; color:var(--text-muted);">${originText}</span>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:10px; align-items:center;" onclick="event.stopPropagation();">
+                                <button class="action-btn" style="background-color:#333; margin:0; padding:6px 12px; font-size:0.8rem;" onclick="window.openEditMiniModal('${mini.id}')">✏️ Éditer</button>
+                                <button class="action-btn" style="background-color:var(--success); margin:0; padding:6px 12px; font-size:0.8rem;" onclick="window.exportToPDF('${mini.id}')">📄 Fiche</button>
+                                <select onchange="window.updateMiniStatus('${mini.id}', this.value)" style="width:140px; height:32px; padding:4px; font-size:0.8rem; background-color:#2a2a2a; border-color:var(--accent);">
+                                    <option value="À imprimer/Acheter" ${mini.status === 'À imprimer/Acheter' ? 'selected' : ''}>À imprimer/Acheter</option>
+                                    <option value="Imprimé/Reçu" ${mini.status === 'Imprimé/Reçu' ? 'selected' : ''}>Imprimé/Reçu</option>
+                                    <option value="Sous-couché" ${mini.status === 'Sous-couché' ? 'selected' : ''}>Sous-couché</option>
+                                    <option value="En cours" ${mini.status === 'En cours' ? 'selected' : ''}>En peinture</option>
+                                    <option value="Fini" ${mini.status === 'Fini' ? 'selected' : ''}>Terminé</option>
+                                </select>
+                                <button class="action-btn" style="background-color:#5a1a1a; margin:0; padding:6px 12px; font-size:0.8rem;" onclick="window.deleteMiniature('${mini.id}')">✕</button>
+                            </div>
+                        </div>
+
+                        <div id="project-body-${mini.id}" style="display: ${isProjectCollapsed ? 'none' : 'block'};">
+                            <div style="background:#141414; padding:12px; border-radius:6px; border:1px solid #222; margin-bottom:20px;">
+                                <h4 style="margin:0 0 10px 0; font-size:0.9rem; color:var(--text-muted);">📷 Galerie de suivi</h4>
+                                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                                    <button class="action-btn" style="background:#333; margin:0; font-size:0.8rem; padding:6px 12px;" onclick="document.getElementById('file-photo-${mini.id}').click()">+ Charger une Photo</button>
+                                    <button class="action-btn" style="background:#333; margin:0; font-size:0.8rem; padding:6px 12px;" onclick="window.addPhotoUrlToMini('${mini.id}')">+ Lier via URL</button>
+                                    <input type="file" id="file-photo-${mini.id}" accept="image/*" style="display:none;" onchange="window.addPhotoToMini('${mini.id}', this)">
+                                </div>
+                                <div class="photo-gallery">${photosHTML || '<p style="color:var(--text-muted); font-size:0.8rem; font-style:italic; margin:10px 0 0 0;">Aucune photo.</p>'}</div>
+                            </div>
+                            ${zonesHTML || '<p style="color:var(--text-muted); font-size:0.9rem; margin-top:15px;">Aucun sous-rang créé.</p>'}
+                            <div style="margin-top:20px; display:flex; gap:10px; align-items:center; background:#141414; padding:10px; border-radius:6px; border:1px solid #252525;">
+                                <input type="text" id="input-zone-${mini.id}" placeholder="Créer un sous-rang (ex: Cape...)" style="flex:1; padding:8px;">
+                                <button class="action-btn" style="margin:0; background-color:var(--success);" onclick="window.addZone('${mini.id}')">+ Ajouter un sous-rang</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            // After DOM update, load local photos from localforage async
+            setTimeout(() => {
+                document.querySelectorAll('img[data-localkey]').forEach(async (imgEl) => {
+                    const key = imgEl.getAttribute('data-localkey');
+                    if (key) {
+                        const data = await localforage.getItem(key);
+                        if (data) { imgEl.src = data; imgEl.style.opacity = '1'; }
+                        else { imgEl.parentElement.title = "Photo non trouvée sur cet appareil"; imgEl.style.opacity = '0.2'; }
+                    }
+                });
+            }, 50);
+        }
+        
+        document.getElementById('mini-search').addEventListener('input', () => { renderMiniatures(allMinis); });
+
+        // -- BIBLIOTHÈQUE STL --
+        document.getElementById('folder-scanner').addEventListener('change', async (event) => {
+            const files = event.target.files;
+            const statusText = document.getElementById('scan-status');
+            let addedCount = 0;
+            if (files.length === 0) return;
+            statusText.innerText = "Importation et analyse...";
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file.name.toLowerCase().endsWith('.stl')) {
+                    await localforage.setItem(file.name, file);
+                    const alreadyExists = allSTLs.some(stl => stl.name.toLowerCase() === file.name.toLowerCase());
+                    if (!alreadyExists) {
+                        await addDoc(collection(db, "stl_library"), { name: file.name, tags: ["À trier"], timestamp: serverTimestamp() });
+                        addedCount++;
+                    }
+                }
+            }
+            statusText.innerText = addedCount > 0 ? `${addedCount} nouveau(x) fichier(s) !` : "Base à jour.";
+            setTimeout(() => statusText.innerText = "", 4000);
+            event.target.value = ''; 
+        });
+
+        document.getElementById('btn-add-stl').addEventListener('click', async () => {
+            const fileInput = document.getElementById('stl-file');
+            const tagsInput = document.getElementById('stl-tags').value;
+            if(fileInput.files.length === 0) return alert("Sélectionne un fichier STL !");
+            
+            const file = fileInput.files[0];
+            const tagsArray = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag !== "");
+            
+            await localforage.setItem(file.name, file);
+            
+            const alreadyExists = allSTLs.some(stl => stl.name === file.name);
+            if(!alreadyExists) {
+                await addDoc(collection(db, "stl_library"), { 
+                    name: file.name, 
+                    tags: tagsArray, 
+                    link: document.getElementById('stl-link').value,
+                    notes: document.getElementById('stl-notes').value,
+                    timestamp: serverTimestamp() 
+                });
+            }
+            fileInput.value = ''; document.getElementById('stl-tags').value = '';
+            document.getElementById('stl-link').value = ''; document.getElementById('stl-notes').value = '';
+            alert("Ajouté avec succès !");
+        });
+
+        function loadSTLLibrary() {
+            onSnapshot(query(collection(db, "stl_library"), orderBy("timestamp", "desc")), (snapshot) => {
+                allSTLs = [];
+                snapshot.forEach((doc) => allSTLs.push({ id: doc.id, ...doc.data() }));
+                renderSTLs(allSTLs);
+            });
+        }
+
+        window.editTags = async function(docId, currentTags) {
+            const newTagsInput = prompt("Modifie les tags (séparés par des virgules) :", currentTags);
+            if (newTagsInput !== null) {
+                const newTagsArray = newTagsInput.split(',').map(tag => tag.trim()).filter(tag => tag !== "");
+                await updateDoc(doc(db, "stl_library", docId), { tags: newTagsArray });
+            }
+        };
+
+        window.deleteSTL = async function(docId, fileName) {
+            if(confirm(`Supprimer définitivement "${fileName}" de la bibliothèque ?`)) {
+                await localforage.removeItem(fileName);
+                await deleteDoc(doc(db, "stl_library", docId));
+            }
+        };
+
+        function renderSTLs(stlArray) {
+            const container = document.getElementById('stl-grid-container');
+            container.innerHTML = '';
+            stlArray.forEach(stl => {
+                const tagsHTML = stl.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+                container.innerHTML += `
+                    <div class="stl-card">
+                        <h4>${stl.name}</h4>
+                        <div style="margin-bottom: 10px; cursor: pointer; padding: 5px; border-radius: 4px; background-color: rgba(255,255,255,0.05);" onclick="window.editTags('${stl.id}', '${stl.tags.join(', ')}')">
+                            ${tagsHTML}
+                            <div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 5px;">(Cliquer pour modifier les tags)</div>
+                        </div>
+                        <p style="font-size:0.8rem; color:var(--text-muted); margin:5px 0;">${stl.notes || 'Pas de note.'}</p>
+                        ${stl.link ? `<a href="${stl.link}" target="_blank" style="color:var(--accent); font-size:0.8rem; text-decoration:none;">Lien source 🔗</a>` : ''}
+                        <button class="action-btn" onclick="window.viewSTL('${stl.name}')" style="width:100%; margin:10px 0 8px 0;">Inspecter Volume</button>
+                        <button class="action-btn" style="background-color:#5a1a1a; width:100%; padding: 5px;" onclick="window.deleteSTL('${stl.id}', '${stl.name}')">Supprimer</button>
+                    </div>
+                `;
+            });
+        }
+
+        document.getElementById('stl-search').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            renderSTLs(allSTLs.filter(stl => stl.name.toLowerCase().includes(term) || stl.tags.some(tag => tag.toLowerCase().includes(term))));
+        });
+
+        // -- MOTEUR 3D THREE.JS --
+        let scene, camera, renderer, controls, currentMesh;
+        window.viewSTL = async function(fileName) {
+            const modal = document.getElementById('viewer-modal');
+            const container = document.getElementById('viewer-container');
+            
+            const fileBlob = await localforage.getItem(fileName);
+            if(!fileBlob) {
+                alert("Fichier non trouvé sur cet appareil. Importez-le manuellement si vous avez changé de PC.");
+                return;
+            }
+            const url = URL.createObjectURL(fileBlob);
+
+            modal.style.display = 'flex';
+            if (!scene) {
+                scene = new THREE.Scene(); scene.background = new THREE.Color(0x1a1a1a);
+                camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+                camera.position.set(0, -100, 100); 
+                renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setSize(container.clientWidth, container.clientHeight);
+                container.appendChild(renderer.domElement);
+                controls = new THREE.OrbitControls(camera, renderer.domElement);
+                controls.enableDamping = true;
+                scene.add(new THREE.AmbientLight(0x404040, 1.2));
+                const frontLight = new THREE.DirectionalLight(0xffffff, 1.0); frontLight.position.set(0, 0, 1);
+                camera.add(frontLight); scene.add(camera);
+                const backLight = new THREE.DirectionalLight(0xffffff, 0.4); backLight.position.set(0, 1, -1); scene.add(backLight);
+                const animate = function () { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); };
+                animate();
+            }
+            if (currentMesh) scene.remove(currentMesh);
+            const material = new THREE.MeshStandardMaterial({ color: 0xa0a0a0, roughness: 0.7, metalness: 0.1 });
+            const loader = new THREE.STLLoader();
+            loader.load(url, function (geometry) {
+                geometry.computeVertexNormals(); geometry.center(); 
+                currentMesh = new THREE.Mesh(geometry, material);
+                currentMesh.geometry.computeBoundingBox();
+                const size = new THREE.Vector3(); currentMesh.geometry.boundingBox.getSize(size);
+                const scale = 50 / Math.max(size.x, size.y, size.z);
+                currentMesh.scale.set(scale, scale, scale);
+                currentMesh.rotation.x = -Math.PI / 2;
+                scene.add(currentMesh);
+            });
+        };
+        document.getElementById('close-viewer').addEventListener('click', () => { document.getElementById('viewer-modal').style.display = 'none'; });
+    </script>
+</body>
+</html>
