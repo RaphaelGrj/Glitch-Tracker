@@ -145,6 +145,36 @@
         </div>
     </div>
 
+    <!-- Modal édition STL -->
+    <div id="edit-stl-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.92); z-index:2500; justify-content:center; align-items:flex-start; padding-top:60px; overflow-y:auto;">
+        <div class="form-panel" style="width:560px; max-width:95vw; background:#1e1e1e; position:relative;">
+            <h3 style="margin-top:0;">✏️ Modifier la fiche STL</h3>
+            <input type="hidden" id="edit-stl-id">
+            <p id="edit-stl-name-display" style="color:var(--text-muted); font-size:0.85rem; margin:0 0 12px 0;"></p>
+
+            <div class="form-group" style="margin-bottom:15px;">
+                <label>Tags (séparés par des virgules)</label>
+                <input type="text" id="edit-stl-tags" placeholder="ex: Monstre, Undead, Décor">
+            </div>
+
+            <div class="form-group" style="margin-bottom:15px;">
+                <label>Notes / Paramètres d'impression</label>
+                <textarea id="edit-stl-notes" rows="3" style="width:100%; padding:10px; background:#2a2a2a; border:1px solid var(--border); color:white; border-radius:4px; box-sizing:border-box; resize:vertical;" placeholder="ex: Supports lourds sur l'épée, Échelle 110%..."></textarea>
+            </div>
+
+            <div class="form-group" style="margin-bottom:15px;">
+                <label>Liens de téléchargement / sources</label>
+                <div id="edit-stl-links-container" style="display:flex; flex-direction:column; gap:8px; margin-bottom:8px;"></div>
+                <button class="action-btn" type="button" onclick="window.addSTLLinkField()" style="background:#333; padding:6px 14px; font-size:0.85rem;">+ Ajouter un lien</button>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button class="action-btn" onclick="window.saveSTLEdit()" style="background:var(--success); flex:1;">💾 Sauvegarder</button>
+                <button class="action-btn" onclick="document.getElementById('edit-stl-modal').style.display='none'" style="background:#555; flex:1;">Annuler</button>
+            </div>
+        </div>
+    </div>
+
     <div id="viewer-modal">
         <button id="close-viewer">Fermer la visionneuse</button>
         <div id="viewer-container"></div>
@@ -1015,12 +1045,59 @@
             });
         }
 
-        window.editTags = async function(docId, currentTags) {
-            const newTagsInput = prompt("Modifie les tags (séparés par des virgules) :", currentTags);
-            if (newTagsInput !== null) {
-                const newTagsArray = newTagsInput.split(',').map(tag => tag.trim()).filter(tag => tag !== "");
-                await updateDoc(doc(db, "stl_library", docId), { tags: newTagsArray });
-            }
+        // STL edit modal helpers
+        window.openEditSTLModal = function(stlId) {
+            const stl = allSTLs.find(s => s.id === stlId);
+            if (!stl) return;
+            document.getElementById('edit-stl-id').value = stlId;
+            document.getElementById('edit-stl-name-display').textContent = '📁 ' + stl.name;
+            document.getElementById('edit-stl-tags').value = (stl.tags || []).join(', ');
+            document.getElementById('edit-stl-notes').value = stl.notes || '';
+
+            // Build links list: support both old stl.link and new stl.links[]
+            const linksContainer = document.getElementById('edit-stl-links-container');
+            linksContainer.innerHTML = '';
+            const linksArr = stl.links && stl.links.length > 0
+                ? stl.links
+                : (stl.link ? [{ label: 'Lien source', url: stl.link }] : []);
+            linksArr.forEach(l => window._addSTLLinkRow(l.label || '', l.url || ''));
+
+            document.getElementById('edit-stl-modal').style.display = 'flex';
+        };
+
+        window._addSTLLinkRow = function(label, url) {
+            const container = document.getElementById('edit-stl-links-container');
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex; gap:6px; align-items:center;';
+            row.innerHTML = `
+                <input type="text" placeholder="Libellé (ex: Fichier principal)" value="${label.replace(/"/g,'&quot;')}" style="flex:1; padding:6px; font-size:0.85rem;">
+                <input type="url" placeholder="https://..." value="${url.replace(/"/g,'&quot;')}" style="flex:2; padding:6px; font-size:0.85rem;">
+                <button type="button" onclick="this.parentElement.remove()" style="background:#5a1a1a; border:none; color:white; border-radius:4px; cursor:pointer; padding:4px 8px; font-size:0.9rem;">✕</button>
+            `;
+            container.appendChild(row);
+        };
+
+        window.addSTLLinkField = function() {
+            window._addSTLLinkRow('', '');
+        };
+
+        window.saveSTLEdit = async function() {
+            const id = document.getElementById('edit-stl-id').value;
+            const tagsRaw = document.getElementById('edit-stl-tags').value;
+            const tags = tagsRaw.split(',').map(t => t.trim()).filter(t => t !== '');
+            const notes = document.getElementById('edit-stl-notes').value.trim();
+
+            const rows = document.getElementById('edit-stl-links-container').querySelectorAll('div');
+            const links = [];
+            rows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                const label = inputs[0] ? inputs[0].value.trim() : '';
+                const url = inputs[1] ? inputs[1].value.trim() : '';
+                if (url) links.push({ label: label || url, url });
+            });
+
+            await updateDoc(doc(db, "stl_library", id), { tags, notes, links, link: links.length > 0 ? links[0].url : '' });
+            document.getElementById('edit-stl-modal').style.display = 'none';
         };
 
         window.deleteSTL = async function(docId, fileName) {
@@ -1034,18 +1111,25 @@
             const container = document.getElementById('stl-grid-container');
             container.innerHTML = '';
             stlArray.forEach(stl => {
-                const tagsHTML = stl.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+                const tagsHTML = (stl.tags || []).map(tag => `<span class="tag">${tag}</span>`).join('') || '<span style="color:var(--text-muted); font-size:0.8rem;">Aucun tag</span>';
+                // Support both old single-link (stl.link) and new multi-links array (stl.links)
+                const linksArr = stl.links && stl.links.length > 0 ? stl.links : (stl.link ? [{ label: 'Lien source', url: stl.link }] : []);
+                const linksHTML = linksArr.map(l => `<a href="${l.url}" target="_blank" style="display:block; color:var(--accent); font-size:0.8rem; text-decoration:none; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${l.url}">🔗 ${l.label || l.url}</a>`).join('');
                 container.innerHTML += `
                     <div class="stl-card">
-                        <h4>${stl.name}</h4>
-                        <div style="margin-bottom: 10px; cursor: pointer; padding: 5px; border-radius: 4px; background-color: rgba(255,255,255,0.05);" onclick="window.editTags('${stl.id}', '${stl.tags.join(', ')}')">
-                            ${tagsHTML}
-                            <div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 5px;">(Cliquer pour modifier les tags)</div>
+                        <div>
+                            <h4>${stl.name}</h4>
+                            <div style="margin-bottom: 8px; padding: 5px; border-radius: 4px; background-color: rgba(255,255,255,0.04); text-align:left;">
+                                ${tagsHTML}
+                            </div>
+                            <p style="font-size:0.8rem; color:var(--text-muted); margin:6px 0; text-align:left;">${stl.notes || '<em>Pas de note.</em>'}</p>
+                            <div style="text-align:left; margin-top:4px;">${linksHTML || '<span style="font-size:0.75rem; color:var(--text-muted);">Aucun lien.</span>'}</div>
                         </div>
-                        <p style="font-size:0.8rem; color:var(--text-muted); margin:5px 0;">${stl.notes || 'Pas de note.'}</p>
-                        ${stl.link ? `<a href="${stl.link}" target="_blank" style="color:var(--accent); font-size:0.8rem; text-decoration:none;">Lien source 🔗</a>` : ''}
-                        <button class="action-btn" onclick="window.viewSTL('${stl.name}')" style="width:100%; margin:10px 0 8px 0;">Inspecter Volume</button>
-                        <button class="action-btn" style="background-color:#5a1a1a; width:100%; padding: 5px;" onclick="window.deleteSTL('${stl.id}', '${stl.name}')">Supprimer</button>
+                        <div style="margin-top:12px;">
+                            <button class="action-btn" onclick="window.openEditSTLModal('${stl.id}')" style="width:100%; margin-bottom:6px; background:#444; padding:6px;">✏️ Éditer</button>
+                            <button class="action-btn" onclick="window.viewSTL('${stl.name}')" style="width:100%; margin-bottom:6px; padding:6px;">🔍 Inspecter Volume</button>
+                            <button class="action-btn" style="background-color:#5a1a1a; width:100%; padding:5px;" onclick="window.deleteSTL('${stl.id}', '${stl.name}')">✕ Supprimer</button>
+                        </div>
                     </div>
                 `;
             });
