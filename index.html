@@ -69,6 +69,61 @@
 
         .collapse-toggle-btn { background: none; border: none; color: var(--text-main); font-size: 1.1rem; cursor: pointer; padding: 5px 10px; margin-right: 5px; }
 
+        /* ── VISIONNEUSE 3D ── */
+        #viewer3d.active { display: flex !important; flex-direction: column; height: calc(100vh - 80px); padding: 0 !important; overflow: hidden; }
+        #viewer3d { height: calc(100vh - 80px); }
+        #v3d-layout { display: flex; flex: 1; min-height: 0; gap: 0; }
+        #v3d-canvas-wrap { flex: 1; position: relative; background: #0d0d0d; border-radius: 6px 0 0 6px; overflow: hidden; }
+        #v3d-canvas-wrap canvas { display: block; width: 100% !important; height: 100% !important; }
+        #v3d-panels { width: 270px; background: #141414; border: 1px solid var(--border); border-left: none; border-radius: 0 6px 6px 0; display: flex; flex-direction: column; overflow-y: auto; }
+        .v3d-section { padding: 12px; border-bottom: 1px solid #222; }
+        .v3d-section h4 { margin: 0 0 10px 0; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .v3d-btn { background: #2a2a2a; border: 1px solid #444; color: var(--text-main); padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.78rem; width: 100%; margin-bottom: 5px; text-align: left; transition: border-color 0.15s; }
+        .v3d-btn:hover { border-color: var(--accent); }
+        .v3d-btn.active { border-color: var(--accent); background: #3a1a1a; }
+        .v3d-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+        .v3d-label { font-size: 0.75rem; color: var(--text-muted); min-width: 70px; }
+        .v3d-slider { flex: 1; height: 4px; accent-color: var(--accent); }
+        .v3d-color { width: 30px; height: 22px; border: 1px solid #444; border-radius: 3px; cursor: pointer; padding: 0; background: none; }
+        .v3d-input { flex: 1; background: #1a1a1a; border: 1px solid #333; color: var(--text-main); border-radius: 3px; padding: 3px 6px; font-size: 0.75rem; }
+        .v3d-obj-card { background: #1e1e1e; border: 1px solid #333; border-radius: 4px; padding: 8px; margin-bottom: 6px; cursor: pointer; transition: border-color 0.15s; }
+        .v3d-obj-card.selected { border-color: var(--accent); }
+        .v3d-obj-card-name { font-size: 0.8rem; font-weight: bold; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .v3d-obj-actions { display: flex; gap: 4px; margin-top: 6px; }
+        .v3d-obj-actions button { flex: 1; font-size: 0.68rem; padding: 3px; background: #2a2a2a; border: 1px solid #444; color: var(--text-main); border-radius: 3px; cursor: pointer; }
+        .v3d-obj-actions button:hover { border-color: var(--accent); }
+        /* Guizmo lumière directionnelle */
+        #v3d-light-guizmo { width: 80px; height: 80px; border-radius: 50%; background: radial-gradient(circle, #2a2a2a 60%, #111); border: 1px solid #444; cursor: crosshair; position: relative; margin: 0 auto 8px; display: block; }
+        #v3d-light-dot { position: absolute; width: 10px; height: 10px; background: #ffe066; border-radius: 50%; transform: translate(-50%,-50%); top: 50%; left: 50%; pointer-events: none; box-shadow: 0 0 6px #ffe066; }
+        /* Top bar visionneuse */
+        #v3d-topbar { display: flex; gap: 8px; align-items: center; padding: 8px 12px; background: #181818; border-bottom: 1px solid var(--border); flex-shrink: 0; flex-wrap: wrap; }
+        #v3d-topbar h2 { margin: 0; font-size: 1rem; border: none; padding: 0; flex: 1; }
+        .v3d-top-btn { background: #2a2a2a; border: 1px solid #444; color: var(--text-main); padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; white-space: nowrap; }
+        .v3d-top-btn:hover { border-color: var(--accent); }
+        /* Transform mini inputs */
+        .v3d-transform-row { display: grid; grid-template-columns: 40px 1fr 1fr 1fr; gap: 4px; align-items: center; margin-bottom: 4px; font-size: 0.72rem; }
+        .v3d-transform-row label { color: var(--text-muted); }
+        .v3d-transform-row input { background: #1a1a1a; border: 1px solid #333; color: var(--text-main); border-radius: 3px; padding: 2px 4px; font-size: 0.72rem; width: 100%; box-sizing: border-box; }
+
+        /* ── MODE SMARTPHONE ── */
+        body.mobile-mode { font-size: 15px; }
+        body.mobile-mode #app-container { flex-direction: column; }
+        body.mobile-mode nav { width: 100% !important; height: auto; flex-direction: row; flex-wrap: wrap; border-right: none; border-bottom: 1px solid var(--border); padding: 6px 4px; }
+        body.mobile-mode nav.collapsed { height: 0; padding: 0; overflow: hidden; }
+        body.mobile-mode nav .nav-header { display: none; }
+        body.mobile-mode nav button { padding: 8px 10px; font-size: 0.78rem; border-left: none; border-bottom: 2px solid transparent; flex: 1; min-width: 80px; text-align: center; }
+        body.mobile-mode nav button:hover, body.mobile-mode nav button.active { border-left: none; border-bottom: 2px solid var(--accent); }
+        body.mobile-mode main { padding: 10px; }
+        body.mobile-mode .tab-content { padding: 12px; }
+        body.mobile-mode .form-row { flex-direction: column; }
+        body.mobile-mode .dash-grid { grid-template-columns: repeat(2, 1fr); }
+        body.mobile-mode #nav-toggle-btn { display: none; }
+        body.mobile-mode #v3d-layout { flex-direction: column; }
+        body.mobile-mode #v3d-panels { width: 100%; border-left: 1px solid var(--border); border-top: none; border-radius: 0 0 6px 6px; max-height: 280px; }
+        body.mobile-mode #v3d-canvas-wrap { min-height: 300px; border-radius: 6px 6px 0 0; }
+        #mobile-mode-btn { margin-top: auto; font-size: 1.1rem; padding: 10px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 6px; }
+        #mobile-mode-btn.active { color: var(--accent); background: #1a1a1a; }
+
         @media print {
             body * { visibility: hidden; background: white !important; color: black !important; }
             #print-section, #print-section * { visibility: visible; }
@@ -193,11 +248,6 @@
         </div>
     </div>
 
-    <div id="viewer-modal">
-        <button id="close-viewer">Fermer la visionneuse</button>
-        <div id="viewer-container"></div>
-    </div>
-
     <div id="print-section"></div>
 
     <div id="app-container">
@@ -211,8 +261,10 @@
             <button class="tab-link" onclick="openTab('paint-inventory')">Inventaire Peintures</button>
             <button class="tab-link" onclick="openTab('logbook')">Journal d'Impression</button>
             <button class="tab-link" onclick="openTab('stl')">Bibliothèque STL</button>
+            <button class="tab-link" onclick="openTab('viewer3d')">🎮 Visionneuse 3D</button>
             <button class="tab-link" onclick="openTab('cost')">Paramètres</button>
-            <button id="logout-btn" style="margin-top: auto; color: var(--accent); border-top: 1px solid var(--border);">Déconnexion</button>
+            <button id="mobile-mode-btn" onclick="window.toggleMobileMode()" title="Mode Smartphone">📱 Mobile</button>
+            <button id="logout-btn" style="color: var(--accent); border-top: 1px solid var(--border);">Déconnexion</button>
         </nav>
 
         <main>
@@ -364,6 +416,105 @@
                 </div>
                 <input type="text" id="stl-search" placeholder="🔍 Rechercher par nom ou tag..." style="margin-bottom: 20px; font-size: 1.1rem; width:100%; padding:12px; background-color:#1e1e1e; border:1px solid var(--border); color:#fff; border-radius:4px;">
                 <div class="stl-grid" id="stl-grid-container"></div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════ -->
+            <!-- ONGLET VISIONNEUSE 3D                              -->
+            <!-- ═══════════════════════════════════════════════════ -->
+            <section id="viewer3d" class="tab-content">
+                <div id="v3d-topbar">
+                    <h2>🎮 Visionneuse 3D</h2>
+                    <button class="v3d-top-btn" onclick="window.v3d_openFilePicker()">📂 Charger STL</button>
+                    <input type="file" id="v3d-file-input" accept=".stl" multiple style="display:none" onchange="window.v3d_loadFiles(this)">
+                    <button class="v3d-top-btn" onclick="window.v3d_addBase()">⬛ Générer Socle</button>
+                    <button class="v3d-top-btn" onclick="window.v3d_exportSelected()" title="Exporter l'objet sélectionné en STL">💾 Exporter STL</button>
+                    <button class="v3d-top-btn" onclick="window.v3d_clearScene()" style="color:#e06060;">🗑 Vider Scène</button>
+                    <button class="v3d-top-btn" onclick="window.v3d_resetCamera()">🔄 Reset Caméra</button>
+                </div>
+                <div id="v3d-layout">
+                    <div id="v3d-canvas-wrap"></div>
+                    <div id="v3d-panels">
+
+                        <div class="v3d-section">
+                            <h4>☀ Lumière Ambiante</h4>
+                            <div class="v3d-row">
+                                <span class="v3d-label">Intensité</span>
+                                <input type="range" class="v3d-slider" id="v3d-amb-int" min="0" max="3" step="0.05" value="0.6" oninput="window.v3d_updateAmbient()">
+                                <input type="color" class="v3d-color" id="v3d-amb-col" value="#ffffff" oninput="window.v3d_updateAmbient()">
+                            </div>
+                        </div>
+
+                        <div class="v3d-section">
+                            <h4>💡 Lumière Directionnelle</h4>
+                            <canvas id="v3d-light-guizmo" width="80" height="80" title="Cliquer/glisser pour orienter"></canvas>
+                            <div class="v3d-row">
+                                <span class="v3d-label">Intensité</span>
+                                <input type="range" class="v3d-slider" id="v3d-dir-int" min="0" max="5" step="0.1" value="1.5" oninput="window.v3d_updateDirLight()">
+                                <input type="color" class="v3d-color" id="v3d-dir-col" value="#ffffff" oninput="window.v3d_updateDirLight()">
+                            </div>
+                            <div class="v3d-row" style="font-size:0.7rem;">
+                                <span style="color:var(--text-muted); min-width:14px;">X</span><input type="number" class="v3d-input" id="v3d-lx" value="1" step="0.1" oninput="window.v3d_updateDirLight(); window.v3d_syncGuizmo()">
+                                <span style="color:var(--text-muted); min-width:14px;">Y</span><input type="number" class="v3d-input" id="v3d-ly" value="2" step="0.1" oninput="window.v3d_updateDirLight(); window.v3d_syncGuizmo()">
+                                <span style="color:var(--text-muted); min-width:14px;">Z</span><input type="number" class="v3d-input" id="v3d-lz" value="1" step="0.1" oninput="window.v3d_updateDirLight(); window.v3d_syncGuizmo()">
+                            </div>
+                        </div>
+
+                        <div class="v3d-section">
+                            <h4>🌌 Fond de scène</h4>
+                            <div class="v3d-row">
+                                <span class="v3d-label">Couleur</span>
+                                <input type="color" class="v3d-color" id="v3d-bg-col" value="#111111" oninput="window.v3d_updateBg()" style="width:100%; height:24px;">
+                            </div>
+                        </div>
+
+                        <div class="v3d-section">
+                            <h4>🎯 Objet sélectionné</h4>
+                            <div id="v3d-no-sel" style="color:var(--text-muted); font-size:0.78rem; font-style:italic;">Aucun objet — cliquer dans la scène ou dans la liste.</div>
+                            <div id="v3d-sel-panel" style="display:none;">
+                                <div style="font-size:0.8rem; font-weight:bold; margin-bottom:8px; color:#fff;" id="v3d-sel-name">—</div>
+                                <div class="v3d-row">
+                                    <span class="v3d-label">Couleur</span>
+                                    <input type="color" class="v3d-color" id="v3d-mat-col" value="#a0a0a0" oninput="window.v3d_updateMaterial()" style="width:100%; height:22px;">
+                                </div>
+                                <div class="v3d-row">
+                                    <span class="v3d-label">Rugosité</span>
+                                    <input type="range" class="v3d-slider" id="v3d-mat-rough" min="0" max="1" step="0.05" value="0.7" oninput="window.v3d_updateMaterial()">
+                                </div>
+                                <div class="v3d-row">
+                                    <span class="v3d-label">Métal</span>
+                                    <input type="range" class="v3d-slider" id="v3d-mat-metal" min="0" max="1" step="0.05" value="0.1" oninput="window.v3d_updateMaterial()">
+                                </div>
+                                <div style="font-size:0.72rem; color:var(--text-muted); margin:8px 0 4px;">Position</div>
+                                <div class="v3d-transform-row"><label>X</label><input type="number" id="v3d-px" step="0.5" oninput="window.v3d_applyTransform()"><input type="number" id="v3d-py" step="0.5" oninput="window.v3d_applyTransform()"><input type="number" id="v3d-pz" step="0.5" oninput="window.v3d_applyTransform()"></div>
+                                <div style="font-size:0.72rem; color:var(--text-muted); margin:4px 0 4px;">Rotation (°)</div>
+                                <div class="v3d-transform-row"><label>X</label><input type="number" id="v3d-rx" step="5" value="0" oninput="window.v3d_applyTransform()"><input type="number" id="v3d-ry" step="5" value="0" oninput="window.v3d_applyTransform()"><input type="number" id="v3d-rz" step="5" value="0" oninput="window.v3d_applyTransform()"></div>
+                                <div style="font-size:0.72rem; color:var(--text-muted); margin:4px 0 4px;">Échelle (%)</div>
+                                <div class="v3d-transform-row"><label>X</label><input type="number" id="v3d-sx" step="5" value="100" oninput="window.v3d_applyTransform()"><input type="number" id="v3d-sy" step="5" value="100" oninput="window.v3d_applyTransform()"><input type="number" id="v3d-sz" step="5" value="100" oninput="window.v3d_applyTransform()"></div>
+                                <div class="v3d-row" style="margin-top:4px;">
+                                    <span class="v3d-label">Unif. %</span>
+                                    <input type="number" class="v3d-input" id="v3d-scale-uni" value="100" step="5" min="1">
+                                    <button class="v3d-btn" style="width:auto; padding:3px 8px; margin:0;" onclick="window.v3d_applyUniformScale()">✓</button>
+                                </div>
+                                <div style="font-size:0.7rem; color:var(--text-muted); margin-top:6px;" id="v3d-dims">—</div>
+                                <div style="margin-top:8px; padding-top:8px; border-top:1px solid #2a2a2a;">
+                                    <div style="font-size:0.72rem; color:var(--text-muted); margin-bottom:5px;">Booléen <span style="font-size:0.65rem;">(expérimental)</span></div>
+                                    <select id="v3d-bool-target" style="background:#1a1a1a; border:1px solid #333; color:var(--text-main); border-radius:3px; padding:3px; font-size:0.72rem; width:100%; margin-bottom:5px;"></select>
+                                    <div style="display:flex; gap:4px;">
+                                        <button class="v3d-btn" style="margin:0; flex:1;" onclick="window.v3d_boolean('union')">∪ Union</button>
+                                        <button class="v3d-btn" style="margin:0; flex:1;" onclick="window.v3d_boolean('subtract')">∖ Soustraction</button>
+                                    </div>
+                                </div>
+                                <button class="v3d-btn" style="margin-top:8px; border-color:#5a1a1a; color:#e06060;" onclick="window.v3d_deleteSelected()">🗑 Supprimer l'objet</button>
+                            </div>
+                        </div>
+
+                        <div class="v3d-section" style="flex:1;">
+                            <h4>📋 Objets dans la scène</h4>
+                            <div id="v3d-obj-list"><span style="color:var(--text-muted); font-size:0.78rem; font-style:italic;">Aucun objet.</span></div>
+                        </div>
+
+                    </div>
+                </div>
             </section>
 
             <section id="cost" class="tab-content">
@@ -1189,51 +1340,428 @@
             renderSTLs(allSTLs.filter(stl => stl.name.toLowerCase().includes(term) || stl.tags.some(tag => tag.toLowerCase().includes(term))));
         });
 
-        // -- MOTEUR 3D THREE.JS --
-        let scene, camera, renderer, controls, currentMesh;
-        window.viewSTL = async function(fileName) {
-            const modal = document.getElementById('viewer-modal');
-            const container = document.getElementById('viewer-container');
-            
-            const fileBlob = await localforage.getItem(fileName);
-            if(!fileBlob) {
-                alert("Fichier non trouvé sur cet appareil. Importez-le manuellement si vous avez changé de PC.");
-                return;
-            }
-            const url = URL.createObjectURL(fileBlob);
+        // ═══════════════════════════════════════════════════════════════
+        // VISIONNEUSE 3D — MOTEUR COMPLET
+        // ═══════════════════════════════════════════════════════════════
+        (function() {
+            let v3d = { scene: null, camera: null, renderer: null, controls: null, ambLight: null, dirLight: null, raycaster: null, objects: [], selected: null, objCounter: 0 };
+            let _animRunning = false;
 
-            modal.style.display = 'flex';
-            if (!scene) {
-                scene = new THREE.Scene(); scene.background = new THREE.Color(0x1a1a1a);
-                camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-                camera.position.set(0, -100, 100); 
-                renderer = new THREE.WebGLRenderer({ antialias: true });
-                renderer.setSize(container.clientWidth, container.clientHeight);
-                container.appendChild(renderer.domElement);
-                controls = new THREE.OrbitControls(camera, renderer.domElement);
-                controls.enableDamping = true;
-                scene.add(new THREE.AmbientLight(0x404040, 1.2));
-                const frontLight = new THREE.DirectionalLight(0xffffff, 1.0); frontLight.position.set(0, 0, 1);
-                camera.add(frontLight); scene.add(camera);
-                const backLight = new THREE.DirectionalLight(0xffffff, 0.4); backLight.position.set(0, 1, -1); scene.add(backLight);
-                const animate = function () { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); };
-                animate();
+            function v3d_init() {
+                const wrap = document.getElementById('v3d-canvas-wrap');
+                if (v3d.renderer) { v3d.renderer.setSize(wrap.clientWidth, wrap.clientHeight); return; }
+                v3d.scene = new THREE.Scene();
+                v3d.scene.background = new THREE.Color(0x111111);
+                v3d.camera = new THREE.PerspectiveCamera(45, wrap.clientWidth / Math.max(wrap.clientHeight, 1), 0.1, 10000);
+                v3d.camera.position.set(0, -150, 120);
+                v3d.renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+                v3d.renderer.setPixelRatio(window.devicePixelRatio);
+                v3d.renderer.setSize(wrap.clientWidth, wrap.clientHeight);
+                v3d.renderer.shadowMap.enabled = true;
+                wrap.appendChild(v3d.renderer.domElement);
+                v3d.controls = new THREE.OrbitControls(v3d.camera, v3d.renderer.domElement);
+                v3d.controls.enableDamping = true;
+                v3d.controls.dampingFactor = 0.08;
+                // Lights
+                v3d.ambLight = new THREE.AmbientLight(0xffffff, 0.6);
+                v3d.scene.add(v3d.ambLight);
+                v3d.dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+                v3d.dirLight.position.set(1, 2, 1);
+                v3d.dirLight.castShadow = true;
+                v3d.scene.add(v3d.dirLight);
+                // Grid
+                const grid = new THREE.GridHelper(300, 30, 0x333333, 0x222222);
+                grid.userData.isHelper = true;
+                v3d.scene.add(grid);
+                // Raycaster
+                v3d.raycaster = new THREE.Raycaster();
+                v3d.renderer.domElement.addEventListener('click', v3d_click);
+                // Resize
+                const ro = new ResizeObserver(() => { if(v3d.renderer){ v3d.renderer.setSize(wrap.clientWidth, wrap.clientHeight); v3d.camera.aspect = wrap.clientWidth / Math.max(wrap.clientHeight,1); v3d.camera.updateProjectionMatrix(); }});
+                ro.observe(wrap);
+                // Animate
+                if (!_animRunning) { _animRunning = true; (function loop(){ requestAnimationFrame(loop); v3d.controls.update(); v3d.renderer.render(v3d.scene, v3d.camera); })(); }
+                // Guizmo lumière
+                v3d_initGuizmo();
             }
-            if (currentMesh) scene.remove(currentMesh);
-            const material = new THREE.MeshStandardMaterial({ color: 0xa0a0a0, roughness: 0.7, metalness: 0.1 });
-            const loader = new THREE.STLLoader();
-            loader.load(url, function (geometry) {
-                geometry.computeVertexNormals(); geometry.center(); 
-                currentMesh = new THREE.Mesh(geometry, material);
-                currentMesh.geometry.computeBoundingBox();
-                const size = new THREE.Vector3(); currentMesh.geometry.boundingBox.getSize(size);
-                const scale = 50 / Math.max(size.x, size.y, size.z);
-                currentMesh.scale.set(scale, scale, scale);
-                currentMesh.rotation.x = -Math.PI / 2;
-                scene.add(currentMesh);
-            });
+
+            // Ensure init when tab opens
+            const origOpen = window.openTab;
+            window.openTab = function(name) { origOpen(name); if (name === 'viewer3d') setTimeout(v3d_init, 50); };
+
+            // ── CLICK SELECTION ──
+            function v3d_click(e) {
+                const rect = v3d.renderer.domElement.getBoundingClientRect();
+                const mouse = new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
+                v3d.raycaster.setFromCamera(mouse, v3d.camera);
+                const hits = v3d.raycaster.intersectObjects(v3d.objects.map(o => o.mesh));
+                if (hits.length > 0) {
+                    const obj = v3d.objects.find(o => o.mesh === hits[0].object);
+                    if (obj) v3d_select(obj);
+                } else {
+                    v3d_deselect();
+                }
+            }
+
+            function v3d_select(obj) {
+                if (v3d.selected) v3d.selected.mesh.material.emissive && (v3d.selected.mesh.material.emissive.set(0x000000));
+                v3d.selected = obj;
+                if (obj.mesh.material.emissive) obj.mesh.material.emissive.set(0x222200);
+                v3d_refreshSelPanel();
+                v3d_refreshObjList();
+            }
+
+            function v3d_deselect() {
+                if (v3d.selected && v3d.selected.mesh.material.emissive) v3d.selected.mesh.material.emissive.set(0x000000);
+                v3d.selected = null;
+                document.getElementById('v3d-no-sel').style.display = '';
+                document.getElementById('v3d-sel-panel').style.display = 'none';
+                v3d_refreshObjList();
+            }
+
+            function v3d_refreshSelPanel() {
+                if (!v3d.selected) return;
+                const obj = v3d.selected;
+                document.getElementById('v3d-no-sel').style.display = 'none';
+                document.getElementById('v3d-sel-panel').style.display = '';
+                document.getElementById('v3d-sel-name').textContent = obj.name;
+                const m = obj.mesh;
+                document.getElementById('v3d-px').value = m.position.x.toFixed(2);
+                document.getElementById('v3d-py').value = m.position.y.toFixed(2);
+                document.getElementById('v3d-pz').value = m.position.z.toFixed(2);
+                document.getElementById('v3d-rx').value = THREE.MathUtils.radToDeg(m.rotation.x).toFixed(1);
+                document.getElementById('v3d-ry').value = THREE.MathUtils.radToDeg(m.rotation.y).toFixed(1);
+                document.getElementById('v3d-rz').value = THREE.MathUtils.radToDeg(m.rotation.z).toFixed(1);
+                document.getElementById('v3d-sx').value = (m.scale.x * 100).toFixed(1);
+                document.getElementById('v3d-sy').value = (m.scale.y * 100).toFixed(1);
+                document.getElementById('v3d-sz').value = (m.scale.z * 100).toFixed(1);
+                document.getElementById('v3d-mat-col').value = '#' + obj.mesh.material.color.getHexString();
+                document.getElementById('v3d-mat-rough').value = obj.mesh.material.roughness;
+                document.getElementById('v3d-mat-metal').value = obj.mesh.material.metalness;
+                v3d_refreshDims();
+                v3d_refreshBoolTargets();
+            }
+
+            function v3d_refreshDims() {
+                if (!v3d.selected) return;
+                const box = new THREE.Box3().setFromObject(v3d.selected.mesh);
+                const s = new THREE.Vector3(); box.getSize(s);
+                document.getElementById('v3d-dims').textContent = `📐 ${s.x.toFixed(1)} × ${s.y.toFixed(1)} × ${s.z.toFixed(1)} mm`;
+            }
+
+            function v3d_refreshBoolTargets() {
+                const sel = document.getElementById('v3d-bool-target');
+                sel.innerHTML = '';
+                v3d.objects.forEach(o => { if (o !== v3d.selected) { const opt = document.createElement('option'); opt.value = o.id; opt.textContent = o.name; sel.appendChild(opt); }});
+                if (!sel.options.length) sel.innerHTML = '<option>—</option>';
+            }
+
+            function v3d_refreshObjList() {
+                const el = document.getElementById('v3d-obj-list');
+                if (!v3d.objects.length) { el.innerHTML = '<span style="color:var(--text-muted); font-size:0.78rem; font-style:italic;">Aucun objet.</span>'; return; }
+                el.innerHTML = v3d.objects.map(o => `
+                    <div class="v3d-obj-card ${v3d.selected === o ? 'selected' : ''}" onclick="window._v3d_selectById('${o.id}')">
+                        <div class="v3d-obj-card-name">${o.name}</div>
+                        <div class="v3d-obj-actions">
+                            <button onclick="event.stopPropagation(); window._v3d_selectById('${o.id}')">✏️</button>
+                            <button onclick="event.stopPropagation(); window._v3d_deleteById('${o.id}')" style="color:#e06060;">🗑</button>
+                        </div>
+                    </div>`).join('');
+            }
+
+            window._v3d_selectById = function(id) { const o = v3d.objects.find(x => x.id === id); if(o) v3d_select(o); };
+            window._v3d_deleteById = function(id) { const o = v3d.objects.find(x => x.id === id); if(!o) return; v3d.scene.remove(o.mesh); v3d.objects = v3d.objects.filter(x => x.id !== id); if (v3d.selected === o) v3d_deselect(); v3d_refreshObjList(); };
+
+            // ── LOAD STL ──
+            window.v3d_openFilePicker = function() { document.getElementById('v3d-file-input').click(); };
+
+            window.v3d_loadFiles = function(input) {
+                if (!v3d.renderer) v3d_init();
+                Array.from(input.files).forEach(file => {
+                    const url = URL.createObjectURL(file);
+                    const loader = new THREE.STLLoader();
+                    loader.load(url, function(geom) {
+                        geom.computeVertexNormals();
+                        geom.center();
+                        const mat = new THREE.MeshStandardMaterial({ color: 0xa0c4ff, roughness: 0.7, metalness: 0.1 });
+                        const mesh = new THREE.Mesh(geom, mat);
+                        const bb = new THREE.Box3().setFromObject(mesh);
+                        const sz = new THREE.Vector3(); bb.getSize(sz);
+                        const norm = 80 / Math.max(sz.x, sz.y, sz.z);
+                        mesh.scale.set(norm, norm, norm);
+                        mesh.rotation.x = -Math.PI / 2;
+                        mesh.receiveShadow = true; mesh.castShadow = true;
+                        v3d.scene.add(mesh);
+                        const id = 'obj_' + (++v3d.objCounter);
+                        const obj = { id, name: file.name.replace('.stl','').replace('.STL',''), mesh, origGeom: geom.clone(), normScale: norm };
+                        v3d.objects.push(obj);
+                        v3d_select(obj);
+                        v3d_refreshObjList();
+                        URL.revokeObjectURL(url);
+                    });
+                });
+                input.value = '';
+            };
+
+            // ── OLD VIEWSTL (from STL library) ──
+            window.viewSTL = async function(fileName) {
+                window.openTab('viewer3d');
+                setTimeout(async () => {
+                    if (!v3d.renderer) v3d_init();
+                    const fileBlob = await localforage.getItem(fileName);
+                    if (!fileBlob) { alert('Fichier non trouvé sur cet appareil.'); return; }
+                    const url = URL.createObjectURL(fileBlob);
+                    const loader = new THREE.STLLoader();
+                    loader.load(url, function(geom) {
+                        geom.computeVertexNormals(); geom.center();
+                        const mat = new THREE.MeshStandardMaterial({ color: 0xa0c4ff, roughness: 0.7, metalness: 0.1 });
+                        const mesh = new THREE.Mesh(geom, mat);
+                        const bb = new THREE.Box3().setFromObject(mesh); const sz = new THREE.Vector3(); bb.getSize(sz);
+                        const norm = 80 / Math.max(sz.x, sz.y, sz.z);
+                        mesh.scale.set(norm, norm, norm); mesh.rotation.x = -Math.PI / 2;
+                        mesh.receiveShadow = true; mesh.castShadow = true;
+                        v3d.scene.add(mesh);
+                        const id = 'obj_' + (++v3d.objCounter);
+                        const obj = { id, name: fileName.replace('.stl','').replace('.STL',''), mesh, origGeom: geom.clone(), normScale: norm };
+                        v3d.objects.push(obj);
+                        v3d_select(obj); v3d_refreshObjList();
+                        URL.revokeObjectURL(url);
+                    });
+                }, 100);
+            };
+
+            // ── LIGHTS ──
+            window.v3d_updateAmbient = function() {
+                if (!v3d.ambLight) return;
+                v3d.ambLight.intensity = parseFloat(document.getElementById('v3d-amb-int').value);
+                v3d.ambLight.color.set(document.getElementById('v3d-amb-col').value);
+            };
+
+            window.v3d_updateDirLight = function() {
+                if (!v3d.dirLight) return;
+                v3d.dirLight.intensity = parseFloat(document.getElementById('v3d-dir-int').value);
+                v3d.dirLight.color.set(document.getElementById('v3d-dir-col').value);
+                const x = parseFloat(document.getElementById('v3d-lx').value)||0;
+                const y = parseFloat(document.getElementById('v3d-ly').value)||0;
+                const z = parseFloat(document.getElementById('v3d-lz').value)||0;
+                v3d.dirLight.position.set(x, y, z);
+            };
+
+            window.v3d_updateBg = function() {
+                if (!v3d.scene) return;
+                v3d.scene.background = new THREE.Color(document.getElementById('v3d-bg-col').value);
+            };
+
+            // ── GUIZMO LUMIèRE ──
+            function v3d_initGuizmo() {
+                const canvas = document.getElementById('v3d-light-guizmo');
+                if (!canvas) return;
+                let dragging = false;
+                function updateFromPos(cx, cy) {
+                    const r = canvas.getBoundingClientRect();
+                    const x = ((cx - r.left) / r.width  * 2 - 1);
+                    const y = -((cy - r.top)  / r.height * 2 - 1);
+                    document.getElementById('v3d-lx').value = (x * 3).toFixed(2);
+                    document.getElementById('v3d-lz').value = (y * 3).toFixed(2);
+                    v3d_updateDirLight();
+                    // Draw dot
+                    const dot = document.getElementById('v3d-light-dot');
+                    if (dot) { dot.style.left = ((x*0.5+0.5)*80)+'px'; dot.style.top  = ((-y*0.5+0.5)*80)+'px'; }
+                }
+                canvas.addEventListener('mousedown', e => { dragging = true; updateFromPos(e.clientX, e.clientY); });
+                canvas.addEventListener('mousemove', e => { if(dragging) updateFromPos(e.clientX, e.clientY); });
+                window.addEventListener('mouseup', () => dragging = false);
+                canvas.addEventListener('touchstart', e => { e.preventDefault(); dragging = true; updateFromPos(e.touches[0].clientX, e.touches[0].clientY); }, {passive:false});
+                canvas.addEventListener('touchmove', e => { e.preventDefault(); if(dragging) updateFromPos(e.touches[0].clientX, e.touches[0].clientY); }, {passive:false});
+                window.addEventListener('touchend', () => dragging = false);
+                // Draw guizmo background
+                const ctx = canvas.getContext('2d');
+                const grad = ctx.createRadialGradient(40,40,5,40,40,38);
+                grad.addColorStop(0,'#2a2a2a'); grad.addColorStop(1,'#111');
+                ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(40,40,38,0,Math.PI*2); ctx.fill();
+                ctx.strokeStyle='#444'; ctx.lineWidth=1; ctx.stroke();
+                ctx.strokeStyle='#333'; ctx.beginPath(); ctx.moveTo(40,4); ctx.lineTo(40,76); ctx.moveTo(4,40); ctx.lineTo(76,40); ctx.stroke();
+                ctx.fillStyle='#555'; ctx.font='9px sans-serif'; ctx.textAlign='center'; ctx.fillText('N',40,12); ctx.fillText('S',40,74); ctx.fillText('O',10,43); ctx.fillText('E',72,43);
+            }
+
+            window.v3d_syncGuizmo = function() {
+                const x = parseFloat(document.getElementById('v3d-lx').value)||0;
+                const z = parseFloat(document.getElementById('v3d-lz').value)||0;
+                const dot = document.getElementById('v3d-light-dot');
+                if (dot) { dot.style.left = ((x/3*0.5+0.5)*80)+'px'; dot.style.top  = ((-z/3*0.5+0.5)*80)+'px'; }
+            };
+
+            // ── MATERIAL ──
+            window.v3d_updateMaterial = function() {
+                if (!v3d.selected) return;
+                const mat = v3d.selected.mesh.material;
+                mat.color.set(document.getElementById('v3d-mat-col').value);
+                mat.roughness = parseFloat(document.getElementById('v3d-mat-rough').value);
+                mat.metalness = parseFloat(document.getElementById('v3d-mat-metal').value);
+            };
+
+            // ── TRANSFORMATIONS ──
+            window.v3d_applyTransform = function() {
+                if (!v3d.selected) return;
+                const m = v3d.selected.mesh;
+                m.position.set(parseFloat(document.getElementById('v3d-px').value)||0, parseFloat(document.getElementById('v3d-py').value)||0, parseFloat(document.getElementById('v3d-pz').value)||0);
+                m.rotation.set(THREE.MathUtils.degToRad(parseFloat(document.getElementById('v3d-rx').value)||0), THREE.MathUtils.degToRad(parseFloat(document.getElementById('v3d-ry').value)||0), THREE.MathUtils.degToRad(parseFloat(document.getElementById('v3d-rz').value)||0));
+                const sx = parseFloat(document.getElementById('v3d-sx').value)||100;
+                const sy = parseFloat(document.getElementById('v3d-sy').value)||100;
+                const sz = parseFloat(document.getElementById('v3d-sz').value)||100;
+                m.scale.set(sx/100, sy/100, sz/100);
+                v3d_refreshDims();
+            };
+
+            window.v3d_applyUniformScale = function() {
+                if (!v3d.selected) return;
+                const s = parseFloat(document.getElementById('v3d-scale-uni').value)||100;
+                document.getElementById('v3d-sx').value = s;
+                document.getElementById('v3d-sy').value = s;
+                document.getElementById('v3d-sz').value = s;
+                v3d_applyTransform();
+            };
+
+            // ── SOCLE ──
+            window.v3d_addBase = function() {
+                if (!v3d.renderer) v3d_init();
+                const geom = new THREE.CylinderGeometry(25, 25, 4, 64);
+                const mat = new THREE.MeshStandardMaterial({ color: 0x444444, roughness: 0.9, metalness: 0.0 });
+                const mesh = new THREE.Mesh(geom, mat);
+                mesh.position.set(0, -2, 0);
+                mesh.receiveShadow = true; mesh.castShadow = true;
+                v3d.scene.add(mesh);
+                const id = 'obj_' + (++v3d.objCounter);
+                const obj = { id, name: 'Socle_rond_' + id, mesh, origGeom: geom.clone(), normScale: 1 };
+                v3d.objects.push(obj);
+                v3d_select(obj); v3d_refreshObjList();
+            };
+
+            // ── EXPORT STL ──
+            window.v3d_exportSelected = function() {
+                if (!v3d.selected) { alert('Sélectionner un objet.'); return; }
+                const mesh = v3d.selected.mesh;
+                // Apply transforms to geometry
+                const geom = v3d.selected.origGeom.clone();
+                const m = new THREE.Matrix4();
+                m.compose(mesh.position, new THREE.Quaternion().setFromEuler(mesh.rotation), mesh.scale);
+                geom.applyMatrix4(m);
+                const stlStr = _geometryToSTL(geom);
+                const blob = new Blob([stlStr], { type: 'model/stl' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = (v3d.selected.name || 'export') + '_scaled.stl';
+                a.click();
+            };
+
+            function _geometryToSTL(geom) {
+                const pos = geom.attributes.position;
+                const norm = geom.attributes.normal;
+                const lines = ['solid export'];
+                for (let i = 0; i < pos.count; i += 3) {
+                    const nx = norm ? norm.getX(i) : 0, ny = norm ? norm.getY(i) : 0, nz = norm ? norm.getZ(i) : 1;
+                    lines.push(`  facet normal ${nx.toFixed(6)} ${ny.toFixed(6)} ${nz.toFixed(6)}`);
+                    lines.push('    outer loop');
+                    for (let j = 0; j < 3; j++) lines.push(`      vertex ${pos.getX(i+j).toFixed(6)} ${pos.getY(i+j).toFixed(6)} ${pos.getZ(i+j).toFixed(6)}`);
+                    lines.push('    endloop\n  endfacet');
+                }
+                lines.push('endsolid export');
+                return lines.join('\n');
+            }
+
+            // ── BOOLÉEN (simple merge / soustraction approx) ──
+            window.v3d_boolean = function(op) {
+                if (!v3d.selected) { alert('Sélectionner un objet source.'); return; }
+                const selId = document.getElementById('v3d-bool-target').value;
+                const target = v3d.objects.find(o => o.id === selId);
+                if (!target || target === v3d.selected) { alert('Sélectionner un objet cible différent.'); return; }
+
+                if (op === 'union') {
+                    // Simple union = fusionner les géométries dans un seul mesh
+                    const g1 = v3d.selected.origGeom.clone().applyMatrix4(v3d.selected.mesh.matrixWorld);
+                    const g2 = target.origGeom.clone().applyMatrix4(target.mesh.matrixWorld);
+                    const merged = _mergeGeometries([g1, g2]);
+                    const mat = new THREE.MeshStandardMaterial({ color: v3d.selected.mesh.material.color.clone(), roughness: 0.7, metalness: 0.1 });
+                    const mesh = new THREE.Mesh(merged, mat);
+                    mesh.receiveShadow = true; mesh.castShadow = true;
+                    v3d.scene.remove(v3d.selected.mesh);
+                    v3d.scene.remove(target.mesh);
+                    v3d.scene.add(mesh);
+                    const id = 'obj_' + (++v3d.objCounter);
+                    const obj = { id, name: 'Union_' + id, mesh, origGeom: merged.clone(), normScale: 1 };
+                    v3d.objects = v3d.objects.filter(o => o !== v3d.selected && o !== target);
+                    v3d.objects.push(obj);
+                    v3d_deselect(); v3d_select(obj); v3d_refreshObjList();
+                } else {
+                    // Soustraction = on rend l'objet cible transparent / on cache l'intersection (approche visuelle)
+                    target.mesh.material.transparent = true;
+                    target.mesh.material.opacity = 0.15;
+                    target.mesh.renderOrder = 1;
+                    alert('Soustraction visuelle appliquée. Pour un vrai booléen, exportez et utilisez un slicer comme Chitubox ou PrusaSlicer.');
+                }
+            };
+
+            function _mergeGeometries(geoms) {
+                let vertCount = 0;
+                geoms.forEach(g => vertCount += g.attributes.position.count);
+                const positions = new Float32Array(vertCount * 3);
+                const normals   = new Float32Array(vertCount * 3);
+                let offset = 0;
+                geoms.forEach(g => {
+                    const p = g.attributes.position; const n = g.attributes.normal;
+                    for (let i = 0; i < p.count; i++) {
+                        positions[(offset+i)*3+0] = p.getX(i); positions[(offset+i)*3+1] = p.getY(i); positions[(offset+i)*3+2] = p.getZ(i);
+                        if (n) { normals[(offset+i)*3+0] = n.getX(i); normals[(offset+i)*3+1] = n.getY(i); normals[(offset+i)*3+2] = n.getZ(i); }
+                    }
+                    offset += p.count;
+                });
+                const out = new THREE.BufferGeometry();
+                out.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                out.setAttribute('normal',   new THREE.BufferAttribute(normals, 3));
+                return out;
+            }
+
+            // ── UTILITAIRES SCÈNE ──
+            window.v3d_clearScene = function() {
+                if (!confirm('Vider toute la scène ?')) return;
+                v3d.objects.forEach(o => v3d.scene.remove(o.mesh));
+                v3d.objects = []; v3d_deselect(); v3d_refreshObjList();
+            };
+
+            window.v3d_deleteSelected = function() {
+                if (!v3d.selected) return;
+                v3d.scene.remove(v3d.selected.mesh);
+                v3d.objects = v3d.objects.filter(o => o !== v3d.selected);
+                v3d_deselect(); v3d_refreshObjList();
+            };
+
+            window.v3d_resetCamera = function() {
+                if (!v3d.camera) return;
+                v3d.camera.position.set(0, -150, 120);
+                v3d.controls.target.set(0, 0, 0);
+                v3d.controls.update();
+            };
+
+        })();
+
+        // ── MODE SMARTPHONE ──
+        window.toggleMobileMode = function() {
+            document.body.classList.toggle('mobile-mode');
+            const btn = document.getElementById('mobile-mode-btn');
+            btn.classList.toggle('active');
+            btn.textContent = document.body.classList.contains('mobile-mode') ? '🖥 Bureau' : '📱 Mobile';
+            // Re-render Three.js if visible
+            if (document.getElementById('viewer3d').classList.contains('active')) {
+                setTimeout(() => { if(window.v3d_resetCamera) window.v3d_resetCamera(); }, 100);
+            }
         };
-        document.getElementById('close-viewer').addEventListener('click', () => { document.getElementById('viewer-modal').style.display = 'none'; });
+        // Detect mobile on load
+        if (window.innerWidth < 768) {
+            document.body.classList.add('mobile-mode');
+            const btn = document.getElementById('mobile-mode-btn');
+            if (btn) { btn.classList.add('active'); btn.textContent = '🖥 Bureau'; }
+        }
+
     </script>
 </body>
 </html>
