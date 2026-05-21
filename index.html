@@ -262,6 +262,7 @@
             <button class="tab-link" onclick="openTab('logbook')">📖 Journal d'Impression</button>
             <button class="tab-link" onclick="openTab('stl')">📂 Bibliothèque STL</button>
             <button class="tab-link" onclick="openTab('viewer3d')">🎮 Visionneuse 3D</button>
+            <button class="tab-link" onclick="openTab('paint-guides')">📚 Fiches Peinture</button>
             <button class="tab-link" onclick="openTab('cost')">⚙️ Paramètres</button>
             <button id="mobile-mode-btn" onclick="window.toggleMobileMode()" title="Mode Smartphone">📱 Mobile</button>
             <button id="logout-btn" style="color: var(--accent); border-top: 1px solid var(--border);">❌️ Déconnexion</button>
@@ -525,6 +526,33 @@
                     <div class="form-group"><label>Prix électricité (€/kWh)</label><input type="number" id="kwhPrice" value="0.194" step="0.001"></div>
                 </div>
             </section>
+
+           <section id="paint-guides" class="tab-content">
+    <h2>Fiches & Méthodologies de Peinture</h2>
+    
+    <div class="form-panel">
+        <h3>Ajouter un nouveau lien (PDF, Vidéo, Drive...)</h3>
+        <div class="form-row" style="align-items: flex-end;">
+            <div class="form-group" style="flex: 2;">
+                <label>Nom de la fiche</label>
+                <input type="text" id="guide-name" placeholder="ex: Tutoriel NMM Or">
+            </div>
+            <div class="form-group" style="flex: 2;">
+                <label>Lien (URL)</label>
+                <input type="url" id="guide-url" placeholder="https://...">
+            </div>
+            <div class="form-group" style="flex: 3;">
+                <label>Tags (séparés par des virgules)</label>
+                <input type="text" id="guide-tags" placeholder="ex: NMM, OSL, Speedpaint...">
+            </div>
+        </div>
+        <button class="action-btn" id="btn-add-guide">Ajouter à la bibliothèque</button>
+    </div>
+
+    <input type="text" id="guide-search" placeholder="🔍 Rechercher par nom ou tag..." style="margin-bottom: 20px; font-size: 1.1rem; width:100%; padding:12px; background-color:#1e1e1e; border:1px solid var(--border); color:#fff; border-radius:4px;">
+    
+    <div class="stl-grid" id="guides-grid-container"></div>
+</section>
         </main>
     </div>
 
@@ -532,6 +560,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-storage.js";
 
         const firebaseConfig = {
           apiKey: "AIzaSyAiOF3ER_rmcxJuXanX7BcmyqOV1pCUYLU",
@@ -545,6 +574,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const storage = getStorage(app);
 
         // --- INVENTAIRE DE PEINTURES INJECTÉ (INTÉGRAL) ---
         const BASE_PAINTS = [{"name": "Matt Black", "brand": "TheArmyPainter Fanatic", "color": "Noir"}, {"name": "Ash Grey", "brand": "TheArmyPainter Fanatic", "color": "Gris"}, {"name": "Matt White", "brand": "TheArmyPainter Fanatic", "color": "Blanc"}, {"name": "Dorado Skin", "brand": "TheArmyPainter Fanatic", "color": "Peau/Chair"}, {"name": "Barbarian Flesh", "brand": "TheArmyPainter Fanatic", "color": "Peau/Chair"}, {"name": "Deep Grey", "brand": "TheArmyPainter Fanatic", "color": "Gris"}, {"name": "Topaz Skin", "brand": "TheArmyPainter Fanatic", "color": "Jaune"}, {"name": "Onyx Skin", "brand": "TheArmyPainter Fanatic", "color": "Noir"}, {"name": "Thunderous Blue", "brand": "TheArmyPainter Fanatic", "color": "Bleu"}, {"name": "Wolf Grey", "brand": "TheArmyPainter Fanatic", "color": "Gris"}, {"name": "Ultramarine Blue", "brand": "TheArmyPainter Fanatic", "color": "Bleu"}, {"name": "Imperial Navy", "brand": "TheArmyPainter Fanatic", "color": "Bleu"}, {"name": "Crystal Blue", "brand": "TheArmyPainter Fanatic", "color": "Bleu"}, {"name": "Bright Sapphire", "brand": "TheArmyPainter Fanatic", "color": "Bleu"}, {"name": "Abyssal Blue", "brand": "TheArmyPainter Fanatic", "color": "Bleu"}, {"name": "Hydra Turquoise", "brand": "TheArmyPainter Fanatic", "color": "Turquoise"}, {"name": "Marine Mist", "brand": "TheArmyPainter Fanatic", "color": "Autre/Effet"}, {"name": "Pharaoh Guard", "brand": "TheArmyPainter Fanatic", "color": "Autre/Effet"}, {"name": "Aqua Alchemy", "brand": "TheArmyPainter Fanatic", "color": "Turquoise"}, {"name": "Angel Green", "brand": "TheArmyPainter Fanatic", "color": "Vert"}, {"name": "Greenskin", "brand": "TheArmyPainter Fanatic", "color": "Vert"}, {"name": "Rainforest", "brand": "TheArmyPainter Fanatic", "color": "Vert"}, {"name": "Autumn Sage", "brand": "TheArmyPainter Fanatic", "color": "Vert"}, {"name": "Army Green", "brand": "TheArmyPainter Fanatic", "color": "Vert"}, {"name": "Necrotic Flesh", "brand": "TheArmyPainter Fanatic", "color": "Vert"}, {"name": "Desert Yellow", "brand": "TheArmyPainter Fanatic", "color": "Jaune"}, {"name": "Daemonic Yellow", "brand": "TheArmyPainter Fanatic", "color": "Jaune"}, {"name": "Ice Yellow", "brand": "TheArmyPainter Fanatic", "color": "Jaune"}, {"name": "Effects: Warpaints Stabilizer", "brand": "TheArmyPainter Fanatic", "color": "Autre/Effet"}, {"name": "Ancient Stone", "brand": "TheArmyPainter Fanatic", "color": "Os/Beige"}, {"name": "Fur Brown", "brand": "TheArmyPainter Fanatic", "color": "Brun"}, {"name": "Lava Orange", "brand": "TheArmyPainter Fanatic", "color": "Orange"}, {"name": "Pure Red", "brand": "TheArmyPainter Fanatic", "color": "Rouge/Rose"}, {"name": "Wicked Pink", "brand": "TheArmyPainter Fanatic", "color": "Rouge/Rose"}, {"name": "Pixie Pink", "brand": "TheArmyPainter Fanatic", "color": "Rouge/Rose"}, {"name": "Alien Purple", "brand": "TheArmyPainter Fanatic", "color": "Violet"}, {"name": "Regal Violet", "brand": "TheArmyPainter Fanatic", "color": "Violet"}, {"name": "Glistening Gold", "brand": "TheArmyPainter Fanatic", "color": "Métallique (Or)"}, {"name": "Greedy Gold", "brand": "TheArmyPainter Fanatic", "color": "Métallique (Or)"}, {"name": "Weapon Bronze", "brand": "TheArmyPainter Fanatic", "color": "Métallique (Or)"}, {"name": "Plate Mail Metal", "brand": "TheArmyPainter Fanatic", "color": "Métallique (Argent)"}, {"name": "Shining Silver", "brand": "TheArmyPainter Fanatic", "color": "Métallique (Argent)"}, {"name": "Averland Sunset", "brand": "Citadel Base", "color": "Jaune"}, {"name": "Corax White", "brand": "Citadel Base", "color": "Blanc"}, {"name": "Leadbelcher", "brand": "Citadel Base", "color": "Autre/Effet"}, {"name": "Macragge Blue", "brand": "Citadel Base", "color": "Bleu"}, {"name": "Mephiston Red", "brand": "Citadel Base", "color": "Rouge/Rose"}, {"name": "Naggaroth Night", "brand": "Citadel Base", "color": "Autre/Effet"}, {"name": "Orruk Flesh", "brand": "Citadel Base", "color": "Peau/Chair"}, {"name": "Retributor Armour", "brand": "Citadel Base", "color": "Autre/Effet"}, {"name": "Rhinox Hide", "brand": "Citadel Base", "color": "Autre/Effet"}, {"name": "Waaagh! Flesh", "brand": "Citadel Base", "color": "Peau/Chair"}, {"name": "Abaddon Black", "brand": "Citadel Base", "color": "Noir"}, {"name": "Balthasar Gold", "brand": "Citadel Base", "color": "Métallique (Or)"}, {"name": "Bugman's Glow", "brand": "Citadel Base", "color": "Autre/Effet"}, {"name": "Caliban Green", "brand": "Citadel Base", "color": "Vert"}, {"name": "Celestra Grey", "brand": "Citadel Base", "color": "Gris"}, {"name": "Death Guard Green", "brand": "Citadel Base", "color": "Vert"}, {"name": "Deathworld Forest", "brand": "Citadel Base", "color": "Autre/Effet"}, {"name": "Dryad Bark", "brand": "Citadel Base", "color": "Autre/Effet"}, {"name": "Gal Vorbak Red", "brand": "Citadel Base", "color": "Rouge/Rose"}, {"name": "Incubi Darkness", "brand": "Citadel Base", "color": "Noir"}, {"name": "Ionrach Flesh", "brand": "Citadel Base", "color": "Peau/Chair"}, {"name": "Jokaero Orange", "brand": "Citadel Base", "color": "Orange"}, {"name": "Khorne Red", "brand": "Citadel Base", "color": "Rouge/Rose"}, {"name": "Lucius Lilac", "brand": "Citadel Base", "color": "Autre/Effet"}, {"name": "Mechanicus Standard Grey", "brand": "Citadel Base", "color": "Gris"}, {"name": "Morghast Bone", "brand": "Citadel Base", "color": "Os/Beige"}, {"name": "Mud", "brand": "Citadel Base", "color": "Brun"}, {"name": "Night Lords Blue", "brand": "Citadel Base", "color": "Bleu"}, {"name": "Rakarth Flesh", "brand": "Citadel Base", "color": "Peau/Chair"}, {"name": "Ratskin Flesh", "brand": "Citadel Base", "color": "Peau/Chair"}, {"name": "Screamer Pink", "brand": "Citadel Base", "color": "Rouge/Rose"}, {"name": "Screaming Bell", "brand": "Citadel Base", "color": "Autre/Effet"}, {"name": "Stegadon Scale Green", "brand": "Citadel Base", "color": "Vert"}, {"name": "The Fang", "brand": "Citadel Base", "color": "Autre/Effet"}, {"name": "Thousand Sons Blue", "brand": "Citadel Base", "color": "Bleu"}, {"name": "Zandri Dust", "brand": "Citadel Base", "color": "Autre/Effet"}, {"name": "Agrellan Earth", "brand": "Citadel Base", "color": "Brun"}, {"name": "Calgar Blue", "brand": "Citadel Layer", "color": "Bleu"}, {"name": "Cadian Fleshtone", "brand": "Citadel Layer", "color": "Peau/Chair"}, {"name": "Dawnstone", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "Elysian Green", "brand": "Citadel Layer", "color": "Vert"}, {"name": "Evil Sunz Scarlet", "brand": "Citadel Layer", "color": "Rouge/Rose"}, {"name": "Fenrisian Grey", "brand": "Citadel Layer", "color": "Gris"}, {"name": "Flash Gitz Yellow", "brand": "Citadel Layer", "color": "Jaune"}, {"name": "Gallya", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "Genestealer Purple", "brand": "Citadel Layer", "color": "Violet"}, {"name": "Ironbreaker", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "Kislev Flesh", "brand": "Citadel Layer", "color": "Peau/Chair"}, {"name": "Lothern Blue", "brand": "Citadel Layer", "color": "Bleu"}, {"name": "Moat Green", "brand": "Citadel Layer", "color": "Vert"}, {"name": "Ogryn Camo", "brand": "Citadel Layer", "color": "Vert"}, {"name": "Phalanx Yellow", "brand": "Citadel Layer", "color": "Jaune"}, {"name": "Runefang Steel", "brand": "Citadel Layer", "color": "Métallique (Argent)"}, {"name": "Slaanesh Grey", "brand": "Citadel Layer", "color": "Gris"}, {"name": "Stormhost Silver", "brand": "Citadel Layer", "color": "Métallique (Argent)"}, {"name": "Teclis Blue", "brand": "Citadel Layer", "color": "Bleu"}, {"name": "Troll Slayer Orange", "brand": "Citadel Layer", "color": "Orange"}, {"name": "Ushabti Bone", "brand": "Citadel Layer", "color": "Os/Beige"}, {"name": "Warboss Green", "brand": "Citadel Layer", "color": "Vert"}, {"name": "Warpstone Glow", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "White Scar", "brand": "Citadel Layer", "color": "Blanc"}, {"name": "Wild Rider Red", "brand": "Citadel Layer", "color": "Rouge/Rose"}, {"name": "Xereus Purple", "brand": "Citadel Layer", "color": "Violet"}, {"name": "Ymelec Blue", "brand": "Citadel Layer", "color": "Bleu"}, {"name": "Zamesi Desert", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "Administratum Grey", "brand": "Citadel Layer", "color": "Gris"}, {"name": "Ahriman Blue", "brand": "Citadel Layer", "color": "Bleu"}, {"name": "Alaitoc Blue", "brand": "Citadel Layer", "color": "Bleu"}, {"name": "Alphic Green", "brand": "Citadel Layer", "color": "Vert"}, {"name": "Auric Armour Gold", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "Balor Brown", "brand": "Citadel Layer", "color": "Brun"}, {"name": "Baneblade Brown", "brand": "Citadel Layer", "color": "Brun"}, {"name": "Bestigor Flesh", "brand": "Citadel Layer", "color": "Peau/Chair"}, {"name": "Bloodbreaker", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "Brass Scorpion", "brand": "Citadel Layer", "color": "Métallique (Or)"}, {"name": "Dark Reaper", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "Deepkin Flesh", "brand": "Citadel Layer", "color": "Peau/Chair"}, {"name": "Doombull Brown", "brand": "Citadel Layer", "color": "Brun"}, {"name": "Eshin Grey", "brand": "Citadel Layer", "color": "Gris"}, {"name": "Flayed One Flesh", "brand": "Citadel Layer", "color": "Peau/Chair"}, {"name": "Fulgurite Copper", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "Gehenna's Gold", "brand": "Citadel Layer", "color": "Métallique (Or)"}, {"name": "Gorthor Brown", "brand": "Citadel Layer", "color": "Brun"}, {"name": "Hashut Copper", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "Hoeth Blue", "brand": "Citadel Layer", "color": "Bleu"}, {"name": "Kabalite Green", "brand": "Citadel Layer", "color": "Vert"}, {"name": "Karak Stone", "brand": "Citadel Layer", "color": "Os/Beige"}, {"name": "Liberator Gold", "brand": "Citadel Layer", "color": "Métallique (Or)"}, {"name": "Loren Forest", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "Nurgling Green", "brand": "Citadel Layer", "color": "Vert"}, {"name": "Pallid Wych Flesh", "brand": "Citadel Layer", "color": "Peau/Chair"}, {"name": "Pink Horror", "brand": "Citadel Layer", "color": "Rouge/Rose"}, {"name": "Runelord Brass", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "Russ Grey", "brand": "Citadel Layer", "color": "Gris"}, {"name": "Skarsnik Green", "brand": "Citadel Layer", "color": "Vert"}, {"name": "Skrag Brown", "brand": "Citadel Layer", "color": "Brun"}, {"name": "Sotek Green", "brand": "Citadel Layer", "color": "Vert"}, {"name": "Stirland Mud", "brand": "Citadel Layer", "color": "Brun"}, {"name": "Straken Green", "brand": "Citadel Layer", "color": "Vert"}, {"name": "Sycorax Bronze", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "Temple Guard Blue", "brand": "Citadel Layer", "color": "Bleu"}, {"name": "Tuskgor Fur", "brand": "Citadel Layer", "color": "Brun"}, {"name": "Wazir Green", "brand": "Citadel Layer", "color": "Vert"}, {"name": "Warplock Bronze", "brand": "Citadel Layer", "color": "Autre/Effet"}, {"name": "Weirdboy Green", "brand": "Citadel Layer", "color": "Vert"}, {"name": "Contrast Medium", "brand": "Citadel Technical", "color": "Autre/Effet"}, {"name": "Lahmian Medium", "brand": "Citadel Technical", "color": "Autre/Effet"}, {"name": "Liquid Frost", "brand": "Citadel Technical", "color": "Autre/Effet"}, {"name": "Ardcoat", "brand": "Citadel Technical", "color": "Autre/Effet"}, {"name": "Stormshield", "brand": "Citadel Technical", "color": "Autre/Effet"}, {"name": "Agrax Earthshade", "brand": "Citadel Shade", "color": "Autre/Effet"}, {"name": "Nuln Oil", "brand": "Citadel Shade", "color": "Autre/Effet"}, {"name": "Seraphim Sepia", "brand": "Citadel Shade", "color": "Autre/Effet"}, {"name": "Piel Elfo", "brand": "GreenStuffWorld Acrylic Color", "color": "Autre/Effet"}, {"name": "Piel Humana", "brand": "GreenStuffWorld Acrylic Color", "color": "Autre/Effet"}, {"name": "Cyber Yellow", "brand": "GreenStuffWorld Acrylic Color", "color": "Jaune"}, {"name": "Sanguine Scarlet", "brand": "GreenStuffWorld Acrylic Color", "color": "Autre/Effet"}, {"name": "Andromena Violet", "brand": "GreenStuffWorld Acrylic Color", "color": "Violet"}, {"name": "Asurmen Blue", "brand": "Citadel Contrast", "color": "Bleu"}, {"name": "Baal Red", "brand": "Citadel Contrast", "color": "Rouge/Rose"}, {"name": "Black Legion", "brand": "Citadel Contrast", "color": "Noir"}, {"name": "Gore-grunta Fur", "brand": "Citadel Contrast", "color": "Brun"}, {"name": "Guilliman Flesh", "brand": "Citadel Contrast", "color": "Peau/Chair"}, {"name": "Imperial Fist", "brand": "Citadel Contrast", "color": "Autre/Effet"}, {"name": "Karandras Green", "brand": "Citadel Contrast", "color": "Vert"}, {"name": "Kroxigor Blue", "brand": "Citadel Contrast", "color": "Bleu"}, {"name": "Magmadroth Flame", "brand": "Citadel Contrast", "color": "Autre/Effet"}, {"name": "Mantis Warriors Green", "brand": "Citadel Contrast", "color": "Vert"}, {"name": "Striking Scorpion Green", "brand": "Citadel Contrast", "color": "Vert"}, {"name": "Talassar Blue", "brand": "Citadel Contrast", "color": "Bleu"}, {"name": "Terradon Turquoise", "brand": "Citadel Contrast", "color": "Turquoise"}, {"name": "Volupus Pink", "brand": "Citadel Contrast", "color": "Rouge/Rose"}, {"name": "Darkwood", "brand": "hound Orange", "color": "Brun"}, {"name": "Fluor Lime", "brand": "GreenStuffWorld Fluor", "color": "Autre/Effet"}, {"name": "Fluor Yellow", "brand": "GreenStuffWorld Fluor", "color": "Jaune"}, {"name": "Fluor Rose", "brand": "GreenStuffWorld Fluor", "color": "Rouge/Rose"}, {"name": "Fluor Blue", "brand": "GreenStuffWorld Fluor", "color": "Bleu"}, {"name": "Zealot Yellow", "brand": "TheArmyPainter SpeedPaints", "color": "Jaune"}, {"name": "Fire Giant Orange", "brand": "TheArmyPainter SpeedPaints", "color": "Orange"}, {"name": "Blood Red", "brand": "TheArmyPainter SpeedPaints", "color": "Rouge/Rose"}, {"name": "Hiveman Purple", "brand": "TheArmyPainter SpeedPaints", "color": "Violet"}, {"name": "Highlord Blue", "brand": "TheArmyPainter SpeedPaints", "color": "Bleu"}, {"name": "Camo Cloak", "brand": "TheArmyPainter SpeedPaints", "color": "Vert"}, {"name": "Gravelord Grey", "brand": "TheArmyPainter SpeedPaints", "color": "Gris"}, {"name": "Magic Blue", "brand": "TheArmyPainter SpeedPaints", "color": "Bleu"}, {"name": "Orc Skin", "brand": "TheArmyPainter SpeedPaints", "color": "Vert"}, {"name": "Dark Wood", "brand": "TheArmyPainter SpeedPaints", "color": "Brun"}, {"name": "Sand Golem", "brand": "TheArmyPainter SpeedPaints", "color": "Os/Beige"}, {"name": "Holy White", "brand": "TheArmyPainter SpeedPaints", "color": "Blanc"}, {"name": "Medium", "brand": "TheArmyPainter SpeedPaints", "color": "Autre/Effet"}, {"name": "Light Tone", "brand": "TheArmyPainter Washes", "color": "Autre/Effet"}, {"name": "Soft Tone", "brand": "TheArmyPainter Washes", "color": "Autre/Effet"}, {"name": "Strong Tone", "brand": "TheArmyPainter Washes", "color": "Autre/Effet"}, {"name": "Green Tone", "brand": "TheArmyPainter Washes", "color": "Vert"}, {"name": "Military Shader", "brand": "TheArmyPainter Washes", "color": "Autre/Effet"}, {"name": "Dark Tone", "brand": "TheArmyPainter Washes", "color": "Autre/Effet"}, {"name": "Red Tone", "brand": "TheArmyPainter Washes", "color": "Rouge/Rose"}, {"name": "Mid Brown", "brand": "TheArmyPainter Washes", "color": "Brun"}, {"name": "Purple Tone", "brand": "TheArmyPainter Washes", "color": "Violet"}, {"name": "Blue Tone", "brand": "TheArmyPainter Washes", "color": "Bleu"}, {"name": "Flesh Wash", "brand": "TheArmyPainter Washes", "color": "Peau/Chair"}, {"name": "Dry Rust", "brand": "TheArmyPainter Effects", "color": "Autre/Effet"}, {"name": "Glistening Blood", "brand": "TheArmyPainter Effects", "color": "Rouge/Rose"}, {"name": "Purple Alchemy", "brand": "TheArmyPainter SpeedPaints", "color": "Violet"}, {"name": "Crusader Skin", "brand": "TheArmyPainter SpeedPaints", "color": "Peau/Chair"}, {"name": "Maxx Darth", "brand": "GreenStuffWorld Others", "color": "Noir"}, {"name": "Hexwraith Flame", "brand": "Citadel Technical", "color": "Autre/Effet"}, {"name": "Sigmarite", "brand": "Citadel Dry", "color": "Jaune"}, {"name": "Tyrant Skull", "brand": "Citadel Dry", "color": "Os/Beige"}, {"name": "Astorath Red", "brand": "Citadel Dry", "color": "Rouge/Rose"}, {"name": "Reikland Fleshshade", "brand": "Citadel Shade", "color": "Peau/Chair"}, {"name": "Casandora Yellow", "brand": "Citadel Shade", "color": "Jaune"}, {"name": "Athonian Camoshade", "brand": "Citadel Shade", "color": "Autre/Effet"}, {"name": "Nighthaunt Gloom", "brand": "Citadel Technical", "color": "Bleu"}, {"name": "Chronus Blue", "brand": "Citadel Dry", "color": "Bleu"}, {"name": "Coelia Greenshade", "brand": "Citadel Shade", "color": "Vert"}, {"name": "John Blanche Masterclass: Blanchitsu Rust", "brand": "TheArmyPainter John Blanche Masterclass", "color": "Autre/Effet"}];
@@ -605,6 +635,7 @@
                 loadAllPaintsData();
                 loadSTLLibrary();
                 loadPrintLogs(); 
+                loadGuides();
             } else {
                 document.getElementById('login-screen').style.display = 'flex';
                 document.getElementById('app-container').style.display = 'none';
@@ -1172,6 +1203,22 @@
                                     <button class="action-btn" style="background:#333; margin:0; font-size:0.8rem; padding:6px 12px;" onclick="window.addPhotoUrlToMini('${mini.id}')">+ Lier via URL</button>
                                     <input type="file" id="file-photo-${mini.id}" accept="image/*" style="display:none;" onchange="window.addPhotoToMini('${mini.id}', this)">
                                 </div>
+
+<div id="edit-guide-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.92); z-index:2500; justify-content:center; align-items:center;">
+    <div class="form-panel" style="width:400px; max-width:95vw; background:#1e1e1e;">
+        <h3 style="margin-top:0;">✏️ Modifier les tags</h3>
+        <input type="hidden" id="edit-guide-id">
+        <p id="edit-guide-name-display" style="color:var(--text-muted); font-size:0.85rem; margin:0 0 12px 0;"></p>
+        <div class="form-group" style="margin-bottom:15px;">
+            <label>Tags</label>
+            <input type="text" id="edit-guide-tags" placeholder="ex: Speedpaint, Zénithal...">
+        </div>
+        <div style="display:flex; gap:10px; margin-top:20px;">
+            <button class="action-btn" onclick="window.saveGuideEdit()" style="background:var(--success); flex:1;">Sauvegarder</button>
+            <button class="action-btn" onclick="document.getElementById('edit-guide-modal').style.display='none'" style="background:#555; flex:1;">Annuler</button>
+        </div>
+    </div>
+</div>
                                 <div class="photo-gallery">${photosHTML || '<p style="color:var(--text-muted); font-size:0.8rem; font-style:italic; margin:10px 0 0 0;">Aucune photo.</p>'}</div>
                             </div>
                             ${zonesHTML || '<p style="color:var(--text-muted); font-size:0.9rem; margin-top:15px;">Aucun sous-rang créé.</p>'}
@@ -1743,6 +1790,104 @@
             };
 
         })();
+
+// -- FICHES PEINTURE (LIENS) --
+let allGuides = [];
+
+function loadGuides() {
+    onSnapshot(query(collection(db, "paint_guides"), orderBy("timestamp", "desc")), (snapshot) => {
+        allGuides = [];
+        snapshot.forEach((doc) => allGuides.push({ id: doc.id, ...doc.data() }));
+        renderGuides(allGuides);
+    });
+}
+
+// Sauvegarde du lien dans Firestore
+document.getElementById('btn-add-guide').addEventListener('click', async () => {
+    const name = document.getElementById('guide-name').value.trim();
+    const url = document.getElementById('guide-url').value.trim();
+    const tagsInput = document.getElementById('guide-tags').value;
+    
+    if(!name || !url) return alert("Le nom et le lien sont obligatoires !");
+    
+    const tagsArray = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag !== "");
+    
+    try {
+        await addDoc(collection(db, "paint_guides"), { 
+            name: name, 
+            tags: tagsArray, 
+            url: url,
+            timestamp: serverTimestamp() 
+        });
+        
+        // On vide les champs après succès
+        document.getElementById('guide-name').value = ''; 
+        document.getElementById('guide-url').value = ''; 
+        document.getElementById('guide-tags').value = '';
+    } catch (error) {
+        console.error("Erreur d'ajout :", error);
+        alert("Une erreur est survenue lors de l'enregistrement.");
+    }
+});
+
+// Affichage des cartes
+function renderGuides(guidesArray) {
+    const container = document.getElementById('guides-grid-container');
+    container.innerHTML = '';
+    guidesArray.forEach(guide => {
+        const tagsHTML = (guide.tags || []).map(tag => `<span class="tag">${tag}</span>`).join('') || '<span style="color:var(--text-muted); font-size:0.8rem;">Aucun tag</span>';
+        
+        container.innerHTML += `
+            <div class="stl-card">
+                <div>
+                    <h4 style="word-break: break-word;">🔗 ${guide.name}</h4>
+                    <div style="margin-bottom: 8px; padding: 5px; border-radius: 4px; background-color: rgba(255,255,255,0.04); text-align:left;">
+                        ${tagsHTML}
+                    </div>
+                </div>
+                <div style="margin-top:12px;">
+                    <a href="${guide.url}" target="_blank" style="text-decoration:none;">
+                        <button class="action-btn" style="width:100%; margin-bottom:6px; background:var(--success); padding:6px;">👁️ Ouvrir le lien</button>
+                    </a>
+                    <button class="action-btn" onclick="window.openEditGuideModal('${guide.id}')" style="width:100%; margin-bottom:6px; background:#444; padding:6px;">✏️ Modifier Tags</button>
+                    <button class="action-btn" style="background-color:#5a1a1a; width:100%; padding:5px;" onclick="window.deleteGuide('${guide.id}')">✕ Supprimer</button>
+                </div>
+            </div>
+        `;
+    });
+}
+
+// Barre de recherche
+document.getElementById('guide-search').addEventListener('input', (e) => {
+    const term = e.target.value.toLowerCase();
+    renderGuides(allGuides.filter(g => g.name.toLowerCase().includes(term) || g.tags.some(tag => tag.toLowerCase().includes(term))));
+});
+
+// Suppression Firestore uniquement
+window.deleteGuide = async function(docId) {
+    if(confirm("Supprimer définitivement cette fiche ?")) {
+        await deleteDoc(doc(db, "paint_guides", docId));
+    }
+};
+
+// Modale (Tags)
+window.openEditGuideModal = function(guideId) {
+    const guide = allGuides.find(g => g.id === guideId);
+    if (!guide) return;
+    document.getElementById('edit-guide-id').value = guideId;
+    document.getElementById('edit-guide-name-display').textContent = '🔗 ' + guide.name;
+    document.getElementById('edit-guide-tags').value = (guide.tags || []).join(', ');
+    document.getElementById('edit-guide-modal').style.display = 'flex';
+};
+
+window.saveGuideEdit = async function() {
+    const id = document.getElementById('edit-guide-id').value;
+    const tagsRaw = document.getElementById('edit-guide-tags').value;
+    const tags = tagsRaw.split(',').map(t => t.trim()).filter(t => t !== '');
+    
+    await updateDoc(doc(db, "paint_guides", id), { tags });
+    document.getElementById('edit-guide-modal').style.display = 'none';
+};
 
         // ── MODE SMARTPHONE ──
         window.toggleMobileMode = function() {
